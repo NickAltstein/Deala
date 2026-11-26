@@ -1,0 +1,71 @@
+# Local ingest path only. The sidecar is not on the database network and is
+# not given DATABASE_URL or any signing key (none exist in this chunk).
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: deala
+      POSTGRES_PASSWORD: deala
+      POSTGRES_DB: deala
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deala -d deala"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    networks:
+      - data
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://deala:deala@postgres:5432/deala
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+    networks:
+      - data
+      - ingest
+
+  whatsapp-mcp:
+    build: ./whatsapp-mcp
+    environment:
+      WAWATCH_PORT: "3001"
+      WAWATCH_DATA: /data
+      DEALA_WEBHOOK_URL: http://backend:8000/whatsapp/event
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./wa-auth:/data
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - ingest
+
+networks:
+  # Postgres is only reachable by the backend. This network has no route to
+  # the public internet and the sidecar is not attached to it.
+  data:
+    internal: true
+  # Sidecar and backend. The sidecar uses this network to reach WhatsApp and
+  # to POST events. It cannot resolve the hostname `postgres`.
+  ingest:
+
+volumes:
+  pgdata:
