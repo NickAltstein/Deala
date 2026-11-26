@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Deala® — Work the trade.</title>
-  <meta name="description" content="Deala watches the lot, works the leads, and stamps every action with a verifiable receipt. Nothing moves without your signature. First 20 dealers only." />
-  <meta name="theme-color" content="#0A0A0A" />
+  <meta name="description" content="Deala is building a proactive AI sales agent for watch and automotive dealers. Find buyers, revive leads, move inventory and stay in control." />
+  <meta name="theme-color" content="#050505" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/300.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/400.css" />
@@ -46,10 +46,13 @@
       overflow-x: hidden;
     }
     h1, h2, h3 { color: var(--white); font-family: var(--font-display); font-weight: 500; letter-spacing: -0.02em; }
-    a { color: inherit; text-decoration: none; }
-    button, input, select { font: inherit; color: inherit; border: none; background: none; }
+    a { color: inherit; text-decoration: none; cursor: pointer; }
+    button, input, select, textarea { font: inherit; color: inherit; border: none; background: none; }
     button { cursor: pointer; }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+    
+    #access, .deala-engine-section { scroll-margin-top: 96px; }
+
     .kicker {
       display: flex; align-items: center; gap: 12px;
       font-family: var(--font-display); font-size: 11px; font-weight: 500;
@@ -77,105 +80,148 @@
     .hero { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
     .hero-canvas { position: absolute; inset: 0; z-index: 1; opacity: 0; pointer-events: none; }
     
-    .hero-content { position: relative; z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; }
-    .hero h1 { font-size: clamp(48px, 8vw, 96px); line-height: 1.05; margin-bottom: 24px; }
-    .hero p { font-size: 18px; max-width: 600px; margin: 0 auto; }
+    .hero-content { position: relative; z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; padding: 0 24px; }
+    .hero h1 { font-size: clamp(40px, 6vw, 80px); line-height: 1.05; margin-bottom: 24px; max-width: 900px; }
+    .hero p { font-size: 18px; max-width: 640px; margin: 0 auto 32px; }
     
-    /* Mobile Tilt Animation for Logo */
-    .hero-logo { 
-      width: min(80vw, 400px); margin-bottom: 40px;
-      perspective: 1000px;
-    }
-    @media (max-width: 900px) {
-      .hero-logo svg { animation: tilt 6s ease-in-out infinite; transform-origin: center; }
-    }
-    @keyframes tilt {
-      0%, 100% { transform: rotateY(0deg) rotateX(0deg); }
-      25% { transform: rotateY(10deg) rotateX(5deg); }
-      75% { transform: rotateY(-10deg) rotateX(-5deg); }
-    }
+    .hero-logo { width: min(80vw, 400px); margin-bottom: 40px; perspective: 1000px; }
+    @media (max-width: 900px) { .hero-logo svg { animation: tilt 6s ease-in-out infinite; transform-origin: center; } }
+    @keyframes tilt { 0%, 100% { transform: rotateY(0deg) rotateX(0deg); } 25% { transform: rotateY(10deg) rotateX(5deg); } 75% { transform: rotateY(-10deg) rotateX(-5deg); } }
 
     /* ============ MANIFESTO ============ */
-    .manifesto { padding: 20vh 24px; text-align: center; }
+    .manifesto { padding: 15vh 24px; text-align: center; border-top: 1px solid var(--line); }
     .manifesto-line { font-family: var(--font-display); font-size: clamp(32px, 5vw, 64px); color: var(--white); line-height: 1.2; }
-    .m-word { opacity: 0.2; transition: opacity 0.1s; }
-    .m-word.active { opacity: 1; }
+    .m-word { opacity: 1; transition: opacity 0.1s; }
 
     /* ============ TWO TRADES ============ */
     .trades { padding: 100px 0; border-top: 1px solid var(--line); }
     .trades-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 40px; }
     .trade-card {
-      background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 40px;
-      position: relative; overflow: hidden; box-shadow: var(--shadow-card);
+      background: radial-gradient(ellipse at 12% 0%, #292929 0%, #151515 38%, #090909 82%);
+      border: 1px solid rgba(255,255,255,.16); border-radius: 24px; padding: 40px;
+      position: relative; overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 20px 50px rgba(0,0,0,.4);
+      display: flex; flex-direction: column; justify-content: space-between;
     }
-    .trade-card h3 { font-size: 28px; margin-bottom: 16px; }
+    .trade-card:hover { border-color: rgba(255,255,255,.25); }
+    .trade-card h3 { font-size: 28px; margin-bottom: 16px; font-weight: 400; letter-spacing: -0.04em; }
     .trade-card p { font-size: 15px; margin-bottom: 32px; }
     .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
     .tag {
       font-family: var(--font-mono); font-size: 11px; padding: 6px 12px;
-      border-radius: 6px; background: var(--panel); border: 1px solid var(--line); color: var(--white);
+      border-radius: 100px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); color: var(--white);
     }
-    .trade-card .glow { position: absolute; width: 200px; height: 200px; background: var(--brass); filter: blur(100px); opacity: 0.1; top: -100px; right: -100px; pointer-events: none; }
 
-    /* ============ BENTO GRID ============ */
-    .bento-section { padding: 120px 0; background: #070707; border-top: 1px solid var(--line); }
-    .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; margin-top: 60px; }
-    .b-card {
-      background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 32px;
-      box-shadow: var(--shadow-card); display: flex; flex-direction: column; justify-content: space-between;
-      position: relative; overflow: hidden;
-    }
-    .b-card:hover { border-color: var(--line-hover); }
+    /* ============ TRACTION BAR ============ */
+    .network-strip { position:relative; background:linear-gradient(90deg,#0a0906,#14120d 50%,#0a0906); border-block:1px solid #b8892f66; box-shadow:0 0 32px #b8892f0c; }
+    .network-inner { display:grid; grid-template-columns:1.15fr repeat(4,1fr); align-items:center; gap:20px; padding-block:19px; font-family:var(--font-mono); }
+    .network-label { display:flex; align-items:center; gap:10px; color:#e0c28a; font-size:10px; letter-spacing:.09em; text-transform:uppercase; }
+    .network-dot { width:7px; height:7px; border:1px solid #d4b071; border-radius:50%; box-shadow:0 0 10px #b8892f55; flex:none; }
+    .network-metric { border-left:1px solid #b8892f33; padding-left:20px; min-width:0; }
+    .network-metric strong { display:block; color:#efede7; font-size:clamp(16px,2vw,24px); font-weight:500; line-height:1.2; letter-spacing:-.06em; }
+    .network-metric small { font-size:10px; color:#b9ad98; display:block; margin-top:4px; line-height:1.5; }
+
+    /* ============ ENGINE ROOM (INTERACTIVE) ============ */
+    .deala-engine-section { padding: 100px 0; background: #070707; border-top: 1px solid var(--line); }
+    .deala-engine-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 32px; }
+    .deala-toggle-group { display: inline-flex; background: #111; border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; }
+    .deala-toggle-btn { background: transparent; color: var(--body); border: 0; border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .deala-toggle-btn.is-active { background: var(--white); color: var(--bg); }
     
-    .b-large { grid-column: span 8; }
-    .b-small { grid-column: span 4; }
-    .b-half { grid-column: span 6; }
-    .b-card h4 { font-size: 24px; margin-bottom: 12px; color: var(--white); }
-    .b-card p { font-size: 15px; }
+    .deala-engine-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    .deala-panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-card); }
+    .deala-panel-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .deala-label { font-size: 11px; letter-spacing: 0.1em; color: var(--body); font-family: var(--font-mono); }
+    .deala-link-btn { background: none; border: 0; color: var(--brass); font-size: 12px; cursor: pointer; text-decoration: underline; }
+    .deala-textarea { width: 100%; background: #000; color: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 12px; font-size: 13px; font-family: var(--font-mono); resize: vertical; }
+    .deala-textarea:focus { outline: 1px solid var(--brass); }
     
-    .mockup {
-      background: #000000; border: 1px solid var(--line); border-radius: 12px;
-      padding: 20px; font-family: var(--font-mono); font-size: 12px; margin-top: 32px;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-    }
-    .m-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--body); }
-    .m-row span:last-child { color: var(--white); }
-    .m-highlight { color: var(--brass) !important; }
-    .m-green { color: #4ADE80 !important; }
+    .deala-parser-meta { display: flex; align-items: center; gap: 8px; margin: 16px 0; font-size: 12px; color: var(--body); font-family: var(--font-mono); }
+    .deala-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; }
+    .deala-fields-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .deala-field-card { background: #000; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+    .deala-field-key { display: block; font-size: 10px; text-transform: uppercase; color: var(--body); margin-bottom: 4px; font-family: var(--font-mono); }
+    .deala-field-val { font-size: 14px; font-weight: 600; color: var(--white); word-break: break-word; font-family: var(--font-mono); }
+    
+    .deala-primary-btn { background: var(--brass); color: #000; border-radius: 10px; padding: 12px 18px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; width: 100%; border: 0; }
+    .deala-primary-btn:hover { background: #C99A3F; }
+    
+    .deala-pillars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .deala-pillar { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow-card); }
+    .deala-step-num { display: inline-block; font-size: 11px; color: var(--brass); font-family: var(--font-mono); margin-bottom: 8px; }
+    .deala-pillar h3 { margin: 0 0 8px; font-size: 16px; font-weight: 500; }
+    .deala-pillar p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--body); }
 
-    /* ============ FORM ============ */
-    .access { padding: 120px 0; border-top: 1px solid var(--line); }
-    .access-card {
-      max-width: 600px; margin: 40px auto 0; background: var(--card);
-      border: 1px solid var(--line); border-radius: 24px; padding: 40px; box-shadow: var(--shadow-card);
-      position: relative;
-    }
-    .field { margin-bottom: 24px; }
-    .field label { display: block; font-family: var(--font-display); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; color: var(--body); }
-    .field input, .field select {
-      width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-      padding: 16px; color: var(--white); outline: none; transition: 0.2s;
-    }
-    .field input:focus, .field select:focus { border-color: var(--brass); }
-    .btn-brass {
-      width: 100%; background: var(--brass); color: #000; font-family: var(--font-display);
-      font-weight: 600; padding: 18px; border-radius: 12px; transition: 0.2s; font-size: 16px;
-    }
-    .btn-brass:hover { background: #C99A3F; transform: translateY(-1px); }
-    .btn-brass:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+    /* ============ CREDIBILITY & GUARDRAILS ============ */
+    .cred-section { padding: 100px 0; background: var(--bg); border-top: 1px solid var(--line); }
+    .cred-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; margin-top: 40px; }
+    .cred-list { list-style: none; }
+    .cred-list li { margin-bottom: 24px; padding-left: 32px; position: relative; }
+    .cred-list li::before { content: '✓'; position: absolute; left: 0; top: 2px; color: var(--brass); font-weight: bold; }
+    .cred-list h4 { color: var(--white); font-size: 18px; margin-bottom: 8px; font-weight: 500; }
+    .cred-list p { font-size: 14px; line-height: 1.6; }
+    .quote-card { background: var(--card); border-left: 2px solid var(--brass); padding: 32px; border-radius: 0 16px 16px 0; }
+    .quote-card p { font-size: 18px; font-style: italic; color: var(--white); line-height: 1.5; margin-bottom: 16px; }
+    .quote-author { font-family: var(--font-mono); font-size: 12px; color: var(--brass); text-transform: uppercase; }
 
-    /* Success State */
-    #successState { display: none; text-align: center; }
-    .success-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(184, 137, 47, 0.1); border: 1px solid var(--brass); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--brass); }
-    .receipt-box { background: #000; border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-top: 24px; text-align: left; font-family: var(--font-mono); font-size: 12px; }
-    .r-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--body); }
-    .r-row span:last-child { color: var(--white); }
+    /* ============ ACCESS FORM ============ */
+    .deala-access-section { padding: 120px 0; border-top: 1px solid var(--line); }
+    .deala-access-card { max-width: 600px; margin: 0 auto; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 40px; box-shadow: var(--shadow-card); }
+    .deala-access-eyebrow { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brass); font-family: var(--font-mono); text-align: center; }
+    .deala-access-title { margin: 0 0 8px; font-size: 32px; text-align: center; font-weight: 400; }
+    .deala-access-subcopy { margin: 0 0 32px; font-size: 14px; color: var(--body); text-align: center; }
+    .deala-access-form { display: grid; gap: 20px; }
+    .deala-field { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+    .deala-field-label { font-size: 12px; font-weight: 600; color: var(--white); font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.1em; }
+    .deala-optional { font-weight: 400; color: var(--body); text-transform: none; letter-spacing: 0; font-family: var(--font-body); }
+    .deala-input { width: 100%; background: #000; color: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 14px; transition: 0.2s; }
+    .deala-input:focus { outline: none; border-color: var(--brass); }
+    .deala-submit-btn { margin-top: 8px; width: 100%; border: 0; border-radius: 12px; padding: 18px; font-size: 16px; font-weight: 600; background: var(--brass); color: #000; cursor: pointer; transition: 0.2s; }
+    .deala-submit-btn:hover { background: #C99A3F; transform: translateY(-1px); }
+    .deala-form-feedback { margin: 0; font-size: 13px; text-align: center; color: var(--body); }
+    .deala-form-feedback.is-error { color: #f87171; }
+    .deala-form-feedback.is-success { color: #4ADE80; }
 
+    /* ============ RECEIPT MODAL ============ */
+    .deala-modal-backdrop { position: fixed; inset: 0; background: rgba(3, 6, 12, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 9999; }
+    .deala-modal-backdrop[hidden] { display: none; }
+    .deala-modal-card { width: 100%; max-width: 680px; background: #0A0A0A; border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8); }
+    .deala-modal-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+    .deala-modal-title { margin: 0; font-size: 20px; }
+    .deala-close-btn { background: #111; color: var(--body); border: 1px solid var(--line); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; }
+    .deala-verify-banner { display: flex; justify-content: space-between; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ADE80; border-radius: 8px; padding: 12px; font-size: 13px; margin-bottom: 16px; font-family: var(--font-mono); }
+    .deala-json-box { background: #000; border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 0 0 16px; max-height: 340px; overflow: auto; font-size: 12px; color: var(--brass); font-family: var(--font-mono); }
+    .deala-modal-footer { display: flex; justify-content: flex-end; gap: 12px; }
+    .deala-secondary-btn { background: #111; color: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+    .deala-secondary-btn:hover { border-color: var(--brass); }
+
+    /* ============ FOOTER ============ */
+    .site-footer { background: #030303; border-top: 1px solid var(--line); padding: 80px 0 40px; position: relative; overflow: hidden; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 3fr; gap: 60px; margin-bottom: 60px; position: relative; z-index: 2; }
+    .footer-brand p { margin-top: 16px; font-size: 14px; max-width: 280px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 24px; padding: 6px 12px; border-radius: 99px; background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.2); font-size: 11px; font-family: var(--font-mono); color: #4ADE80; }
+    .status-badge .dot { width: 6px; height: 6px; background: #4ADE80; border-radius: 50%; box-shadow: 0 0 10px #4ADE80; }
+    .footer-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .footer-col h5 { color: var(--white); font-family: var(--font-display); font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
+    .footer-col a { display: block; font-size: 14px; margin-bottom: 12px; color: var(--body); transition: 0.2s; cursor: pointer; }
+    .footer-col a:hover { color: var(--brass); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 32px; border-top: 1px solid var(--line); font-family: var(--font-mono); font-size: 11px; color: var(--body); position: relative; z-index: 2; }
+    .footer-watermark { position: absolute; bottom: -150px; left: 50%; transform: translateX(-50%); width: 900px; opacity: 0.03; pointer-events: none; z-index: 0; }
+
+    /* ============ RESPONSIVE ============ */
     @media (max-width: 900px) {
-      .trades-grid, .bento-grid { grid-template-columns: 1fr; }
-      .b-large, .b-small, .b-half { grid-column: span 1; }
+      .trades-grid, .deala-engine-grid, .cred-grid, .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+      .deala-pillars, .deala-fields-grid { grid-template-columns: 1fr; }
       .hero-canvas { display: none; }
+      .network-inner { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+      .network-label { grid-column:1/-1; }
+      .footer-links { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
     }
+
+    /* SALES AGENT / INDUSTRIAL PROVENANCE */
+    .hero-actions{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}.hero-cta{background:linear-gradient(135deg,#f0f0ee,#aeb0b3);color:#101010;border-radius:999px;padding:13px 22px;font-weight:600;font-size:14px}.hero-cta span{margin-left:12px}.hero-secondary{font-size:14px;color:#ddd;padding:12px}.hero p{color:#aaa}.agent-section{padding:105px 0;border-top:1px solid var(--line);scroll-margin-top:80px}.agent-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:32px}.agent-lead{max-width:630px;margin-top:18px;color:#aaa}.agent-toggle{display:flex;gap:4px;padding:4px;background:#151515;border:1px solid #353535;border-radius:999px;flex-shrink:0}.agent-toggle button{padding:9px 16px;border-radius:999px;font-size:13px}.agent-toggle button[aria-pressed=true]{background:#eee;color:#111;font-weight:600}.agent-console{border:1px solid #555;border-radius:20px;background:radial-gradient(ellipse at 10% 0%,#2d2d2d,#111 42%,#090909 90%);box-shadow:0 30px 90px #000,inset 0 1px #ffffff22;overflow:hidden}.console-top,.console-foot{padding:17px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.console-top{border-bottom:1px solid #333}.console-top>div{display:flex;gap:9px;align-items:center;color:#eee}.phase{font:10px/1.5 var(--font-mono);letter-spacing:.09em;color:#c8a86b}.console-grid{display:grid;grid-template-columns:175px minmax(0,1.2fr) minmax(0,.9fr)}.console-side,.console-main,.console-detail{padding:20px;min-width:0}.console-side,.console-main{border-right:1px solid #303030}.console-side>div{font-size:12px;margin-top:10px;padding:9px 8px;color:#aaa}.console-side .side-active{color:#eee;border:1px solid #ffffff14;background:#ffffff0a;border-radius:8px}.console-side small{font-size:10px;color:#888}.console-summary{display:flex;justify-content:space-between;gap:10px;align-items:center}.console-summary h3{font-size:22px;font-weight:400;margin-top:5px}.sample-pill{font:10px var(--font-mono);color:#c8a86b;border:1px solid #b8892f55;border-radius:20px;padding:6px 8px;text-align:center}.agent-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:20px 0}.agent-stats>div{padding:12px 9px;background:#090909;border:1px solid #303030;border-radius:9px}.agent-stats strong{display:block;font:400 clamp(15px,1.8vw,25px) var(--font-display);color:#eee;overflow-wrap:anywhere}.agent-stats small{display:block;font-size:10px;color:#aaa}.agent-tasks{display:grid;gap:8px}.agent-task{text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 10px;border:1px solid #333;border-radius:10px;background:#101010;width:100%}.agent-task[aria-pressed=true]{border-color:#b8892f;background:#b8892f10}.agent-task strong{font-size:13px;color:#eee;display:block}.agent-task small{font-size:11px;color:#aaa}.agent-task .task-state{color:#c8a86b;font:10px var(--font-mono);text-align:right;flex-shrink:0}.console-detail h3{font-size:21px;margin:9px 0}.console-detail p{font-size:13px;color:#aaa;margin-bottom:18px}.console-detail textarea{display:block;width:100%;padding:12px;margin:8px 0 12px;border:1px solid #414141;border-radius:9px;color:#eee;background:#080808;resize:vertical;font-size:13px}.console-detail #agent-feedback{font-size:11px;margin:9px 0 0}.console-foot{border-top:1px solid #303030;color:#a9a9a9;font:10px var(--font-mono)}.roadmap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:30px}.road-card{position:relative;overflow:hidden;background:radial-gradient(ellipse at top left,#262626,#101010 60%);border:1px solid #393939;border-radius:20px;padding:28px;min-height:180px}.road-card h3{font-size:25px;margin:14px 0 8px;font-weight:400}.road-card p{font-size:14px;color:#aaa}.measure-strip{display:flex;flex-wrap:wrap;gap:18px;margin-top:24px;border-top:1px solid #333;padding-top:18px;font:11px var(--font-mono);color:#aaa}.measure-strip span:first-child{color:#c8a86b}.ecosystem{padding:60px 0;border-top:1px solid var(--line);text-align:center}.ecosystem .kicker{justify-content:center}.ecosystem .sec-title{font-size:32px}.ecosystem-logos{display:flex;flex-wrap:wrap;justify-content:center;gap:26px;margin:30px 0 15px}.ecosystem-logos span{color:#eee;opacity:.4;transition:opacity .25s;font:500 19px var(--font-display)}.ecosystem-logos span:hover{opacity:1}.ecosystem p:last-child{font-size:12px;color:#aaa}.panel-door{position:absolute;top:0;bottom:0;width:50%;z-index:5;pointer-events:none;background:linear-gradient(135deg,#333,#151515 45%,#0b0b0b);border:1px solid #ffffff22}.panel-door.left{left:0}.panel-door.right{right:0}.deala-modal-card{max-height:90vh;overflow:auto}.deala-modal-footer{flex-wrap:wrap}.hero .kicker{font-size:11px}.nav-logo:focus-visible,a:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid #e0c28a;outline-offset:4px}
+    @media(max-width:1000px){.console-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.console-side{display:none}}@media(max-width:700px){.agent-section{padding:70px 0}.agent-heading{align-items:flex-start;flex-direction:column}.console-grid,.roadmap-grid{grid-template-columns:minmax(0,1fr)}.console-main{border-right:0;border-bottom:1px solid #333}.console-top,.console-foot,.console-main,.console-detail{padding:15px}.road-card,.trade-card,.deala-access-card{padding:24px}.hero{min-height:630px;height:100svh}.hero-logo{margin-bottom:25px}.hero h1{font-size:clamp(42px,11vw,65px)}.hero p{font-size:15px}.hero-actions{gap:6px}.agent-stats strong{font-size:21px}.ecosystem-logos{gap:15px}.ecosystem-logos span{font-size:16px}.wrap{padding-inline:18px}.console-summary h3{font-size:19px}.deala-toggle-group{max-width:100%}.deala-toggle-btn{padding:8px 10px}.network-metric{padding-left:12px}.nav-inner{padding:15px 18px}.deala-verify-banner{flex-wrap:wrap;gap:6px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}.panel-door{display:none!important}}
   </style>
 </head>
 <body>
@@ -215,17 +261,31 @@
   <header class="nav" id="nav">
     <div class="nav-inner">
       <a href="#" class="nav-logo"><svg viewBox="0 0 668 160"><use href="#deala-lockup"/></svg></a>
-      <a href="#access" class="btn-ghost">Request access</a>
+      <a href="#access" class="btn-ghost">Request Access</a>
     </div>
   </header>
 
   <main>
+    <!-- HERO -->
     <section class="hero" id="hero">
       <canvas class="hero-canvas" id="heroCanvas"></canvas>
       <div class="hero-content" id="heroContent">
         <div class="hero-logo" id="heroLogo"><svg viewBox="0 0 668 160"><use href="#deala-lockup"/></svg></div>
+        <p class="kicker" style="justify-content: center; margin-bottom: 16px;">01 · The AI sales agent for dealers</p>
         <h1 id="heroTitle">Work the trade.</h1>
-        <p id="heroSub">It watches the lot, works the leads, and stamps every action with a verifiable receipt. Nothing moves without your signature.</p>
+        <p id="heroSub">Your AI sales agent for watches and cars. Find the next buyer, follow up before the lead goes cold, and turn inventory into revenue. You stay in control.</p>
+        <div class="hero-actions"><a class="hero-cta" href="#agent">See the agent work <span>↘</span></a><a class="hero-secondary" href="#access">Request access ↗</a></div>
+      </div>
+    </section>
+
+    <!-- TRACTION & BENCHMARKS -->
+    <section class="network-strip" aria-label="Product operating principles">
+      <div class="wrap network-inner" data-investor-reveal>
+        <div class="network-label" data-reveal-item><span class="network-dot" aria-hidden="true"></span>THE DEALA OPERATING MODEL</div>
+        <div class="network-metric" data-reveal-item><strong>Find</strong><small>Buyer & inventory matching</small></div>
+        <div class="network-metric" data-reveal-item><strong>Follow up</strong><small>Context-aware sales drafts</small></div>
+        <div class="network-metric" data-reveal-item><strong>Close</strong><small>Deal & margin support</small></div>
+        <div class="network-metric" data-reveal-item><strong>Prove</strong><small>Operator-approved actions</small></div>
       </div>
     </section>
 
@@ -235,330 +295,654 @@
       </p>
     </section>
 
+    <section id="agent" class="agent-section" aria-labelledby="agent-title"><div class="wrap">
+      <div class="agent-heading" data-investor-reveal><div data-reveal-item><p class="kicker">02 · Your daily sales agent</p><h2 class="sec-title" id="agent-title">Don't just chat.<br>Make the sale.</h2><p class="agent-lead">A chatbot waits for a prompt. Deala is designed to work your pipeline, surface the next move and prepare the follow-up before you ask.</p></div><div class="agent-toggle" role="group" aria-label="Demo trade" data-reveal-item><button type="button" data-agent-trade="watch" aria-pressed="true">Watches</button><button type="button" data-agent-trade="auto" aria-pressed="false">Automotive</button></div></div>
+      <div class="agent-console" data-investor-reveal>
+        <div class="console-top"><div><svg viewBox="0 0 210 200" width="23" height="23" aria-hidden="true"><use href="#deala-mono"/></svg><strong>Deala / Sales desk</strong></div><span class="phase">INTERACTIVE CONCEPT · SAMPLE DATA</span></div>
+        <div class="console-grid"><aside class="console-side"><span class="phase">WORKSPACE</span><div class="side-active">◉ &nbsp; Today's priorities</div><div>◎ &nbsp; Buyer pipeline</div><div>▤ &nbsp; Inventory</div><div>↗ &nbsp; Follow-ups</div><div>◇ &nbsp; Activity & approvals</div><small>Illustrative navigation</small></aside>
+        <div class="console-main"><div class="console-summary"><div><span class="phase">DAILY BRIEF / SAMPLE</span><h3 id="brief-title">Three moves worth making.</h3></div><span class="sample-pill">Review required</span></div><div class="agent-stats"><div><strong id="stat1">3</strong><small>Priority moves</small></div><div><strong id="stat2">$28,450</strong><small>Example inventory value</small></div><div><strong id="stat3">2</strong><small>Follow-ups due</small></div></div><div id="agent-tasks" class="agent-tasks" aria-label="Sample priority queue"></div></div>
+        <div class="console-detail"><span class="phase">NEXT BEST ACTION / DEMO</span><h3 id="task-title"></h3><p id="task-reason"></p><label for="agent-draft" class="phase">PROPOSED MESSAGE</label><textarea id="agent-draft" rows="5"></textarea><button id="agent-approve" class="deala-primary-btn" type="button">Approve draft locally ↗</button><p id="agent-feedback" role="status" aria-live="polite">No message is sent in this demo.</p></div></div>
+        <div class="console-foot"><span>OBSERVE → PRIORITIZE → PREPARE → REVIEW</span><span>Illustrative workflow · no connected accounts</span></div>
+      </div>
+      <div class="roadmap-grid" data-investor-reveal><article class="road-card" data-reveal-item><span class="phase">01 / PROSPECT</span><h3>Find the buyer.</h3><p>Match inventory to buying intent and surface the conversations worth having.</p></article><article class="road-card" data-reveal-item><span class="phase">02 / FOLLOW THROUGH</span><h3>Keep the deal alive.</h3><p>Remember where conversations left off, prepare replies and bring warm leads back to the desk.</p></article><article class="road-card" data-reveal-item><span class="phase">03 / CONVERT</span><h3>Protect the margin.</h3><p>Review price, condition and next steps before committing. Keep the dealer in charge.</p></article></div>
+    </div></section>
+
+    <!-- TWO TRADES -->
     <section class="trades wrap">
       <p class="kicker">Built for the floor</p>
       <h2 class="sec-title">Two trades. One standard.</h2>
       
       <div class="trades-grid">
         <div class="trade-card gsap-reveal">
-          <div class="glow"></div>
           <h3>For Watch Dealers</h3>
-          <p>Stop scrolling through 100 WhatsApp groups. Deala parses D2D WTS posts, matches your WTB list, and drafts the reply. Caseback verified. Spread calculated.</p>
+          <p>From a collector asking for a specific reference to a dealer looking to move a full set, Deala is designed to connect inventory with demand, draft the next message and keep every opportunity in view.</p>
           <div class="tag-list">
-            <span class="tag">Chrono24 Sync</span>
-            <span class="tag">Caseback AI</span>
-            <span class="tag">D2D Spread</span>
-            <span class="tag">WTB Matching</span>
+            <span class="tag">Buyer Matching</span>
+            <span class="tag">Reference Context</span>
+            <span class="tag">Margin Review</span>
+            <span class="tag">Follow-up Queue</span>
           </div>
         </div>
 
         <div class="trade-card gsap-reveal">
-          <div class="glow" style="background: #3b82f6; opacity: 0.05;"></div>
           <h3>For Car Dealers</h3>
-          <p>Track aged inventory and floorplan bleed before it eats your margin. Deala watches Manheim lanes, parses leads, and drafts the follow-up.</p>
+          <p>Turn inquiries into appointments and aged units into opportunities. Deala is designed to prioritize buyers, prepare trade-in conversations and flag inventory that needs a new sales strategy.</p>
           <div class="tag-list">
-            <span class="tag">Manheim Tracking</span>
-            <span class="tag">Floorplan Drag</span>
-            <span class="tag">VIN Audit</span>
+            <span class="tag">Lead Priorities</span>
+            <span class="tag">Inventory Aging</span>
+            <span class="tag">Vehicle Context</span>
             <span class="tag">Lead Follow-up</span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="bento-section">
+    <!-- INTERACTIVE ENGINE ROOM -->
+    <section id="engine-room" class="deala-engine-section" aria-labelledby="engine-room-title">
       <div class="wrap">
-        <p class="kicker">The engine room</p>
-        <h2 class="sec-title">Industrial Provenance.</h2>
+        <div class="deala-engine-header">
+          <div>
+            <p class="kicker">03 · Under the hood / working prototype</p>
+            <h2 id="engine-room-title" class="sec-title">From raw inquiry<br>to a structured deal.</h2>
+          </div>
 
-        <div class="bento-grid">
-          <div class="b-card b-large gsap-reveal">
-            <div>
-              <h4>Zero missed deals.</h4>
-              <p>Deala silently reads your groups, extracts the reference and price, and scores the urgency in under 2 seconds.</p>
+          <div class="deala-toggle-group" role="group" aria-label="Select asset vertical">
+            <button type="button" class="deala-toggle-btn is-active" data-vertical="watch" aria-pressed="true">Watch (WTS)</button>
+            <button type="button" class="deala-toggle-btn" data-vertical="auto" aria-pressed="false">Auto (VIN / Lane)</button>
+          </div>
+        </div>
+
+        <div class="deala-engine-grid">
+          <!-- Left: Raw Listing Input & Live Parser Output -->
+          <div class="deala-panel">
+            <div class="deala-panel-top">
+              <label for="deala-raw-input" class="deala-label">RAW INGESTION PAYLOAD</label>
+              <button type="button" id="deala-reset-sample" class="deala-link-btn">Load Sample</button>
             </div>
-            <div class="mockup">
-              <div class="m-row"><span>INBOUND_MSG</span><span class="m-highlight">"WTS 126610LV full set 2022 card, 14.5k"</span></div>
-              <div class="m-row"><span>PARSED_REF</span><span>126610LV</span></div>
-              <div class="m-row"><span>PARSED_PRICE</span><span>$14,500</span></div>
-              <div class="m-row"><span>URGENCY_SCORE</span><span class="m-green">99 (WTB MATCH)</span></div>
+            <textarea id="deala-raw-input" class="deala-textarea" rows="3" spellcheck="false"></textarea>
+            <div class="deala-parser-meta">
+              <span class="deala-status-dot" aria-hidden="true"></span>
+              <span id="deala-parser-status">Local parser demo</span>
+            </div>
+            <div id="deala-parsed-fields" class="deala-fields-grid" aria-live="polite"></div>
+            <div>
+              <!-- Keep the brass color -->
+              <button type="button" id="deala-open-receipt-btn" class="deala-primary-btn">Generate local demo receipt</button>
             </div>
           </div>
 
-          <div class="b-card b-small gsap-reveal">
-            <div>
-              <h4>The Deala Stamp.</h4>
-              <p>Every action is bound to an Ed25519 signature. If the data changes, the stamp breaks.</p>
-            </div>
-            <div class="mockup" style="border-color: var(--brass); box-shadow: 0 0 20px var(--brass-glow);">
-              <div class="m-row"><span>RECEIPT_ID</span><span>#0147</span></div>
-              <div class="m-row"><span>SHA-256</span><span>9f3a...c21e</span></div>
-              <div class="m-row"><span>ED25519</span><span class="m-highlight">✓ VALID</span></div>
-            </div>
-          </div>
-
-          <div class="b-card b-half gsap-reveal">
-            <div>
-              <h4>Know the spread.</h4>
-              <p>The agent calculates real-time comps and flags anomalies before you commit capital.</p>
-            </div>
-            <div class="mockup">
-              <div class="m-row"><span>BID</span><span>24.10</span></div>
-              <div class="m-row"><span>ASK</span><span>24.65</span></div>
-              <div class="m-row"><span>SPREAD</span><span class="m-green">+0.55 (2.3%)</span></div>
-            </div>
-          </div>
-
-          <div class="b-card b-half gsap-reveal">
-            <div>
-              <h4>Move the metal.</h4>
-              <p>Aged inventory gets surfaced with a drafted wholesale blast, awaiting your one-tap approval.</p>
-            </div>
-            <div class="mockup">
-              <div class="m-row"><span>UNIT 114</span><span class="m-highlight">63 DAYS AGED</span></div>
-              <div class="m-row"><span>ACTION</span><span>Draft D2D Blast</span></div>
-              <div class="m-row"><span>STATUS</span><span>Awaiting Signature</span></div>
-            </div>
+          <!-- Right: 4 Core Engine Pillars -->
+          <div class="deala-pillars">
+            <article class="deala-pillar">
+              <span class="deala-step-num">01</span>
+              <h3>Find the signal</h3>
+              <p>The local prototype extracts selected fields from pasted dealer listings. Missing information stays missing.</p>
+            </article>
+            <article class="deala-pillar">
+              <span class="deala-step-num">02</span>
+              <h3>The Deala Stamp</h3>
+              <p>A local Ed25519 signature can bind the extracted record to its exact contents. It does not establish counterparty identity or approval.</p>
+            </article>
+            <article class="deala-pillar">
+              <span class="deala-step-num">03</span>
+              <h3>Know the spread</h3>
+              <p>Planned pricing intelligence brings authorized market context and dealer-set margin targets into the same workflow.</p>
+            </article>
+            <article class="deala-pillar">
+              <span class="deala-step-num">04</span>
+              <h3>Move the metal</h3>
+              <p>The goal: move from a qualified opportunity to an operator-reviewed next action, with a clear record of the terms.</p>
+            </article>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="access" class="access">
-      <div class="wrap" style="text-align: center;">
-        <p class="kicker" style="justify-content: center;">01 · Access</p>
-        <h2 class="sec-title">Twenty marks. Then the door closes.</h2>
-        
-        <div class="access-card gsap-reveal">
-          <form id="waitlistForm">
-            <div class="field">
-              <label>Business / Dealer Name</label>
-              <input type="text" id="dealerName" placeholder="e.g. Apex Motors or Horology Co." required />
+    <section class="cred-section" id="trust">
+      <div class="wrap" data-investor-reveal>
+        <p class="kicker">04 · Industrial provenance</p>
+        <h2 class="sec-title">Built to act. Designed to answer to you.</h2>
+        <div class="cred-grid">
+          <ul class="cred-list" data-reveal-item>
+            <li><h4>Permission before action</h4><p>Our intended workflow gives the dealer control over external messages, offers and commitments. Draft first. Review before sending.</p></li>
+            <li><h4>Context that stays with the deal</h4><p>Inventory, preferences, conversation history and agreed terms belong in the same decision workflow.</p></li>
+            <li><h4>Evidence, not blind trust</h4><p>Our working local signing demo illustrates how a changed record can fail signature verification. Production identity and authorization remain to be integrated.</p></li>
+          </ul>
+          <div class="quote-card" data-reveal-item><svg width="64" height="64" viewBox="0 0 210 200" aria-hidden="true"><use href="#deala-mono"/></svg><h3 style="font-size:32px;margin:12px 0">Nothing moves without your signature.</h3><p style="font-style:normal;font-size:14px;color:#aaa">Industrial provenance is the architecture behind the agent, not another job for the dealer.</p><span class="quote-author">DEALA / OPERATOR FIRST</span></div>
+        </div>
+      </div>
+    </section>
+    <section class="agent-section" id="roadmap"><div class="wrap" data-investor-reveal><p class="kicker">05 · Product roadmap</p><h2 class="sec-title">One sales agent. Two high-value trades.</h2><p class="agent-lead">Start with daily dealer workflows. Expand into a repeatable operating layer for high-value commerce.</p><div class="roadmap-grid">
+    <article class="road-card" data-reveal-item><span class="phase">01 / WORKING PROTOTYPE</span><h3>Understand the deal.</h3><p>Local listing extraction and browser-based receipt signing. Explore the engine above.</p></article>
+    <article class="road-card" data-reveal-item><span class="phase">02 / PLANNED PILOT</span><h3>Work the pipeline.</h3><p>Authorized inbox and inventory connections, persistent sales context, prioritized follow-ups and approval queues.</p></article>
+    <article class="road-card" data-reveal-item><span class="phase">03 / ROADMAP</span><h3>Compound the advantage.</h3><p>Dealer-specific playbooks, market context, outcome measurement and repeatable onboarding across both trades.</p></article></div>
+    <div class="measure-strip"><span>WHAT WE PLAN TO MEASURE</span><span>Lead-to-sale conversion</span><span>Response time</span><span>Inventory days</span><span>Gross profit per deal</span></div></div></section>
+    <section class="ecosystem"><div class="wrap" data-investor-reveal><p class="kicker">Integration roadmap / not connected</p><h2 class="sec-title">Built for the rails of the trade.</h2><div class="ecosystem-logos" data-reveal-item><span>WhatsApp Business</span><span>Chrono24</span><span>Manheim</span><span>eBay Motors</span><span>Discord</span><span>Signal</span></div><p>Potential integration targets, subject to authorized access and platform requirements. No partnerships implied.</p></div></section>
+    <!-- ACCESS FORM -->
+    <section id="access" class="deala-access-section">
+      <div class="wrap">
+        <div class="deala-access-card">
+          <p id="deala-trade-badge" class="deala-access-eyebrow">04 · Cohort 01 Access · Horology & Wholesale Auto</p>
+          <h2 id="deala-access-title" class="deala-access-title">Request Desk Access</h2>
+          <p id="deala-trade-subcopy" class="deala-access-subcopy">Cohort 01 is capped at 20 active operators. Tell us what you move and where to reach your desk.</p>
+
+          <form id="deala-access-form" class="deala-access-form" novalidate>
+            <div class="deala-field">
+              <label for="deala-business-name" class="deala-field-label">Business / Dealer Name</label>
+              <input id="deala-business-name" name="business_name" type="text" class="deala-input" placeholder="e.g., Hudson Horology or Tri-State Fleet" required />
             </div>
-            <div class="field">
-              <label>Email</label>
-              <input type="email" id="dealerEmail" placeholder="you@dealership.com" required />
+            <div class="deala-field">
+              <label for="deala-work-email" class="deala-field-label">Work Email</label>
+              <input id="deala-work-email" name="email" type="email" class="deala-input" placeholder="desk@dealership.com" required />
             </div>
-            <div class="field">
-              <label>Primary Trade</label>
-              <select id="dealerTrade">
-                <option>Automotive</option>
-                <option>Horology (Watches)</option>
-                <option>Both</option>
+            <div class="deala-field">
+              <label for="deala-trade-select" class="deala-field-label">Primary Trade Vertical</label>
+              <select id="deala-trade-select" name="trade" class="deala-input">
+                <option value="horology">Horology / Watch Dealer (WTS & Escrows)</option>
+                <option value="automotive">Wholesale Auto / VIN & Lane Desk</option>
+                <option value="both">Both Horology & Wholesale Auto</option>
               </select>
             </div>
-            <button type="submit" class="btn-brass" id="submitBtn">Request access</button>
-            <p style="font-size: 12px; margin-top: 16px;">First 20 operators only. We verify trade credentials.</p>
+            <div class="deala-field">
+              <label for="deala-whatsapp" class="deala-field-label">WhatsApp / Mobile <span class="deala-optional">(optional — for priority onboarding)</span></label>
+              <input id="deala-whatsapp" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" class="deala-input" placeholder="+1 (212) 555-0194" />
+            </div>
+            <button type="submit" class="deala-submit-btn">Join Cohort 01 Queue</button>
+            <p id="deala-form-feedback" class="deala-form-feedback" role="status" aria-live="polite"></p>
           </form>
-
-          <!-- Success State -->
-          <div id="successState">
-            <div class="success-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            </div>
-            <h3>Mark Reserved.</h3>
-            <p style="margin-top: 8px;">Your Dealer Mark ID has been stamped.</p>
-            <div class="receipt-box">
-              <div class="r-row"><span>MARK_ID</span><span id="r-mark">DL-015</span></div>
-              <div class="r-row"><span>NAME</span><span id="r-name">Apex Motors</span></div>
-              <div class="r-row"><span>ED25519</span><span class="m-highlight">e3b0c44298fc...c21e</span></div>
-              <div class="r-row"><span>STATUS</span><span class="m-green">VERIFIED</span></div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
   </main>
+  
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <svg class="footer-watermark" viewBox="0 0 210 200"><use href="#deala-mono"/></svg>
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="nav-logo" style="display:inline-block; margin-bottom: 8px;">
+            <svg viewBox="0 0 668 160" style="height: 28px; width: auto;"><use href="#deala-lockup"/></svg>
+          </a>
+          <p>The AI sales agent for watch and automotive dealers. Work the trade. Prove the action.</p>
+          <div class="status-badge">
+            <span class="dot"></span> Prototype / pilot in development
+          </div>
+        </div>
+        
+        <div class="footer-links">
+          <div class="footer-col">
+            <h5>Product</h5>
+            <a href="#agent">Sales Agent</a><a href="#engine-room">The Engine</a>
+            <a href="#receipt-modal" data-open-receipt-modal="security">Security &amp; Receipts</a>
+            <a href="#roadmap">Product Roadmap</a>
+          </div>
+          <div class="footer-col">
+            <h5>Company</h5>
+            <a onclick="alert('About section is in draft for Cohort 01. Contact desk@deala.trade for more info.')">About</a>
+            <a onclick="alert('Manifesto is in draft for Cohort 01. Contact desk@deala.trade for more info.')">Manifesto</a>
+            <a href="mailto:desk@deala.trade">Contact</a>
+          </div>
+          <div class="footer-col">
+            <h5>Legal</h5>
+            <a onclick="alert('Privacy policy is in draft for Cohort 01. Contact desk@deala.trade for details.')">Privacy</a>
+            <a onclick="alert('Terms of service are in draft for Cohort 01. Contact desk@deala.trade for details.')">Terms</a>
+            <a href="#receipt-modal" data-open-receipt-modal="api">Local Receipt Demo</a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <span>© 2026 Deala®. All rights reserved.</span>
+        <span>DEALA® / INDUSTRIAL PROVENANCE</span>
+      </div>
+    </div>
+  </footer>
 
+  <!-- RECEIPT MODAL -->
+  <div id="deala-receipt-modal" class="deala-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deala-modal-title" hidden>
+    <div class="deala-modal-card">
+      <div class="deala-modal-header">
+        <div>
+          <p class="deala-access-eyebrow" style="text-align: left;">Cryptographic Provenance</p>
+          <h3 id="deala-modal-title" class="deala-modal-title">Signed Ed25519 Trade Receipt</h3>
+        </div>
+        <button type="button" id="deala-close-modal" class="deala-close-btn" aria-label="Close modal">✕</button>
+      </div>
+      <div class="deala-verify-banner" id="deala-verify-banner">
+        <span>Signature Status:</span>
+        <strong id="deala-sig-status">Verifying...</strong>
+      </div>
+      <pre class="deala-json-box"><code id="deala-receipt-json"></code></pre>
+      <div class="deala-modal-footer">
+        <button type="button" id="deala-copy-json-btn" class="deala-secondary-btn">Copy JSON</button>
+        <button type="button" id="deala-download-json-btn" class="deala-secondary-btn">Download .json</button>
+        <button type="button" id="deala-re-sign-btn" class="deala-primary-btn" style="width: auto;">Rotate Key & Re-Sign</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
 
   <script>
-    gsap.registerPlugin(ScrollTrigger);
+    /* ============ INITIALIZATION ============ */
+    if (window.gsap && window.ScrollTrigger) {
+      gsap.registerPlugin(ScrollTrigger);
 
-    /* ============ LENIS ============ */
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smooth: true,
-    });
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
-    gsap.ticker.lagSmoothing(0);
-
-    ScrollTrigger.create({
-      start: 'top -50',
-      onUpdate: (self) => {
-        document.getElementById('nav').classList.toggle('scrolled', self.scroll() > 50);
+      if (window.Lenis && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+        gsap.ticker.lagSmoothing(0);
       }
-    });
 
-    /* ============ 3D MONOGRAM (EXACT SVG PATHS) ============ */
-    const canvas = document.getElementById('heroCanvas');
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.z = 6;
+      ScrollTrigger.create({
+        start: 'top -50',
+        onUpdate: (self) => { document.getElementById('nav').classList.toggle('scrolled', self.scroll() > 50); }
+      });
 
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      /* ============ 3D MONOGRAM ============ */
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && window.innerWidth > 900) {
+        try {
+          const canvas = document.getElementById('heroCanvas');
+          const scene = new THREE.Scene();
+          const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+          camera.position.z = 9.5;
 
-    // Studio Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.5);
-    dirLight1.position.set(5, 5, 5);
-    scene.add(dirLight1);
-    const dirLight2 = new THREE.DirectionalLight(0xB8892F, 1.5); // Brass rim light
-    dirLight2.position.set(-5, -5, 2);
-    scene.add(dirLight2);
+          const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Extrude the exact SVG Paths of the Deala D
-    const extrudeSettings = { depth: 0.4, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.05, bevelThickness: 0.05 };
-    
-    function createDealaD() {
-      const group = new THREE.Group();
-      
-      const drawShape = (svgPathFunc) => {
-        const shape = new THREE.Shape();
-        svgPathFunc(shape);
-        // Center the shape and scale it down to fit the screen
-        const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-        geo.center();
-        geo.scale(0.02, 0.02, 0.02); 
-        return geo;
+          const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+          scene.add(ambientLight);
+          const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.5);
+          dirLight1.position.set(5, 5, 5);
+          scene.add(dirLight1);
+          const dirLight2 = new THREE.DirectionalLight(0xB8892F, 1.5); 
+          dirLight2.position.set(-5, -5, 2);
+          scene.add(dirLight2);
+
+          const extrudeSettings = { depth: 0.4, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.05, bevelThickness: 0.05 };
+          
+          function createDealaD() {
+            const group = new THREE.Group();
+            const drawShape = (svgPathFunc) => {
+              const shape = new THREE.Shape();
+              svgPathFunc(shape);
+              const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+              geo.center();
+              geo.scale(0.018, 0.018, 0.018); 
+              return geo;
+            };
+            const mat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 1, roughness: 0.2 });
+
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(24, 20); s.lineTo(52, 20); s.lineTo(52, 116); s.lineTo(24, 144); s.lineTo(24, 20); }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(24, 158); s.lineTo(52, 130); s.lineTo(52, 180); s.lineTo(24, 180); s.lineTo(24, 158); }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { 
+              s.moveTo(64, 20); s.lineTo(106, 20);
+              s.bezierCurveTo(154, 20, 186, 54, 186, 100); s.bezierCurveTo(186, 146, 154, 180, 106, 180);
+              s.lineTo(64, 180); s.lineTo(64, 156); s.lineTo(106, 156);
+              s.bezierCurveTo(140, 156, 162, 134, 162, 100); s.bezierCurveTo(162, 66, 140, 44, 106, 44);
+              s.lineTo(64, 44); s.lineTo(64, 20);
+            }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(66, 156); s.lineTo(66, 120); s.lineTo(84, 111); s.lineTo(84, 156); s.lineTo(66, 156); }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(92, 156); s.lineTo(92, 94); s.lineTo(110, 85); s.lineTo(110, 156); s.lineTo(92, 156); }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(118, 156); s.lineTo(118, 68); s.lineTo(136, 59); s.lineTo(136, 156); s.lineTo(118, 156); }), mat));
+
+            group.rotation.x = Math.PI; 
+            return group;
+          }
+
+          const mesh = createDealaD();
+          scene.add(mesh);
+
+          gsap.to(mesh.rotation, {
+            y: Math.PI * 2,
+            scrollTrigger: {
+              trigger: "#hero", start: "top top", end: "bottom top", scrub: 1, pin: true,
+              onUpdate: (self) => {
+                gsap.to("#heroContent", { opacity: Math.max(0, 1 - self.progress * 4), duration: 0.1, overwrite: true });
+                const opacity = Math.min(self.progress * 3, 1); 
+                canvas.style.opacity = opacity;
+                document.getElementById('heroLogo').style.opacity = 1 - opacity;
+              }
+            }
+          });
+
+          function animate() { requestAnimationFrame(animate); mesh.position.y = Math.sin(Date.now() * 0.001) * 0.1; renderer.render(scene, camera); }
+          animate();
+          window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+        } catch (error) { console.warn('3D hero unavailable; using static logo.', error); }
+      }
+
+      /* ============ SCROLLTRIGGER REVEALS ============ */
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const words = document.querySelectorAll('.m-word');
+        gsap.fromTo(words, {opacity:.2}, { opacity: 1, stagger: 0.1, scrollTrigger: { trigger: ".manifesto", start: "top 70%", end: "bottom 40%", scrub: true } });
+
+        document.querySelectorAll('.trade-card,.road-card').forEach(card=>{
+          const left=document.createElement('span'),right=document.createElement('span');left.className='panel-door left';right.className='panel-door right';left.setAttribute('aria-hidden','true');right.setAttribute('aria-hidden','true');card.append(left,right);
+          gsap.timeline({scrollTrigger:{trigger:card,start:'top 88%',end:'top 52%',scrub:true}}).to(left,{xPercent:-101,ease:'none'},0).to(right,{xPercent:101,ease:'none'},0);
+        });
+        const investorMotion = gsap.matchMedia();
+        investorMotion.add('(min-width: 901px)', () => {
+          gsap.utils.toArray('[data-investor-reveal]').forEach(group => {
+            const targets = group.querySelectorAll('[data-reveal-item]');
+            gsap.fromTo(targets, {y:22, autoAlpha:0}, {y:0, autoAlpha:1, duration:.65, stagger:.095, ease:'power2.out', clearProps:'transform,visibility,opacity', scrollTrigger:{trigger:group,start:'top 88%',once:true}});
+          });
+        });
+        investorMotion.add('(max-width: 900px)', () => {
+          gsap.utils.toArray('[data-reveal-item]').forEach(item => {
+            gsap.fromTo(item, {y:14, autoAlpha:0}, {y:0, autoAlpha:1, duration:.5, ease:'power2.out', clearProps:'transform,visibility,opacity', scrollTrigger:{trigger:item,start:'top 94%',once:true}});
+          });
+        });
+      }
+    }
+
+    /* ============ INTERACTIVE ENGINE ROOM (WEB CRYPTO) ============ */
+    (function () {
+      const SAMPLES = {
+        watch: "WTS 126610LV Starbucks Mk2 BNIB 2026 full set papers + card $13,450 wire / escrow NYC hand-to-hand",
+        auto: "LANE 14 | 2024 Mercedes-AMG G63 VIN: W1NYC7HJ8RX492810 | 4,120 mi | Obsidian Black | Ask $178,500 | Clean Carfax, 1-pay"
       };
 
-      // 1. Left Spine Top
-      group.add(new THREE.Mesh(drawShape(s => {
-        s.moveTo(24, 20); s.lineTo(52, 20); s.lineTo(52, 116); s.lineTo(24, 144); s.lineTo(24, 20);
-      }), new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 1, roughness: 0.2 })));
+      const toggleButtons = Array.from(document.querySelectorAll(".deala-toggle-btn"));
+      const rawInput = document.getElementById("deala-raw-input");
+      const resetBtn = document.getElementById("deala-reset-sample");
+      const fieldsContainer = document.getElementById("deala-parsed-fields");
+      const statusText = document.getElementById("deala-parser-status");
 
-      // 2. Left Spine Bottom
-      group.add(new THREE.Mesh(drawShape(s => {
-        s.moveTo(24, 158); s.lineTo(52, 130); s.lineTo(52, 180); s.lineTo(24, 180); s.lineTo(24, 158);
-      }), new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 1, roughness: 0.2 })));
+      const openReceiptBtn = document.getElementById("deala-open-receipt-btn");
+      const modal = document.getElementById("deala-receipt-modal");
+      const closeModalBtn = document.getElementById("deala-close-modal");
+      const jsonCodeEl = document.getElementById("deala-receipt-json");
+      const sigStatusEl = document.getElementById("deala-sig-status");
+      const copyJsonBtn = document.getElementById("deala-copy-json-btn");
+      const downloadJsonBtn = document.getElementById("deala-download-json-btn");
+      const reSignBtn = document.getElementById("deala-re-sign-btn");
 
-      // 3. The Bowl (with curves)
-      group.add(new THREE.Mesh(drawShape(s => {
-        s.moveTo(64, 20); s.lineTo(106, 20);
-        s.bezierCurveTo(154, 20, 186, 54, 186, 100);
-        s.bezierCurveTo(186, 146, 154, 180, 106, 180);
-        s.lineTo(64, 180); s.lineTo(64, 156); s.lineTo(106, 156);
-        s.bezierCurveTo(140, 156, 162, 134, 162, 100);
-        s.bezierCurveTo(162, 66, 140, 44, 106, 44);
-        s.lineTo(64, 44); s.lineTo(64, 20);
-      }), new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 1, roughness: 0.2 })));
+      let currentVertical = "watch";
+      let currentParsed = null;
+      let currentReceipt = null;
+      let cachedKeyPair = null;
+      let lastTriggerEl = null; // Tracks the element that opened the modal for focus return
 
-      // 4. Three Interior Pillars
-      const pillarMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 1, roughness: 0.2 });
-      group.add(new THREE.Mesh(drawShape(s => { s.moveTo(66, 156); s.lineTo(66, 120); s.lineTo(84, 111); s.lineTo(84, 156); s.lineTo(66, 156); }), pillarMat));
-      group.add(new THREE.Mesh(drawShape(s => { s.moveTo(92, 156); s.lineTo(92, 94); s.lineTo(110, 85); s.lineTo(110, 156); s.lineTo(92, 156); }), pillarMat));
-      group.add(new THREE.Mesh(drawShape(s => { s.moveTo(118, 156); s.lineTo(118, 68); s.lineTo(136, 59); s.lineTo(136, 156); s.lineTo(118, 156); }), pillarMat));
+      function parseListing(text, vertical) {
+        const t0 = performance.now();
+        const clean = (text || "").trim();
+        const priceMatch = clean.match(/\$\s?([\d,]+(?:\.\d{1,2})?)/);
+        const askUsd = priceMatch ? Number(priceMatch[1].replace(/,/g, "")) : null;
 
-      return group;
-    }
-
-    const mesh = createDealaD();
-    scene.add(mesh);
-
-    // ScrollTrigger to rotate mesh and crossfade SVG -> Canvas
-    gsap.to(mesh.rotation, {
-      y: Math.PI * 2,
-      x: Math.PI * 0.1,
-      scrollTrigger: {
-        trigger: "#hero",
-        start: "top top",
-        end: "bottom top",
-        scrub: 1,
-        pin: true,
-        onUpdate: (self) => {
-          // Fade text out
-          gsap.to("#heroContent", { opacity: 1 - self.progress * 4, duration: 0.1, overwrite: true });
+        if (vertical === "auto") {
+          const vinMatch = clean.match(/\b[A-HJ-NPR-Z0-9]{17}\b/i);
+          const yearMatch = clean.match(/\b(19|20)\d{2}\b/);
+          const milesMatch = clean.match(/([\d,]+)\s*(?:mi|miles)\b/i);
+          const laneMatch = clean.match(/\bLANE\s*(\d+)\b/i);
+          const vin = vinMatch ? vinMatch[0].toUpperCase() : null;
+          const year = yearMatch ? yearMatch[0] : null;
+          const mileage = milesMatch ? Number(milesMatch[1].replace(/,/g, "")) : null;
+          const lane = laneMatch ? `Lane ${laneMatch[1]}` : "Wholesale Feed";
+          const estComp = null;
+          const elapsed = (performance.now() - t0).toFixed(1);
           
-          // Smooth crossfade between static SVG and 3D Canvas
-          const opacity = Math.min(self.progress * 3, 1); 
-          canvas.style.opacity = opacity;
-          document.getElementById('heroLogo').style.opacity = 1 - opacity;
-          document.getElementById('heroLogo').style.transform = `scale(${1 + self.progress * 0.5})`;
+          return {
+            elapsed, vertical: "AUTOMOTIVE_WHOLESALE",
+            fields: [
+              { key: "VIN / Chassis", value: vin || "Not provided" },
+              { key: "Model Year & Lane", value: `${year || "Unknown year"} · ${lane}` },
+              { key: "Quoted Ask", value: askUsd ? `$${askUsd.toLocaleString()}` : "Unquoted" },
+              { key: "Odometer", value: mileage === null ? "Not provided" : `${mileage.toLocaleString()} mi` }
+            ],
+            payload: { asset_class: "automotive", vin, model_year: year ? Number(year) : null, odometer_miles: mileage, lane, quoted_ask_usd: askUsd, estimated_comp_usd: estComp, raw_excerpt: clean.slice(0, 240) }
+          };
+        }
+
+        const refMatch = clean.match(/\b\d{5,6}[A-Z]{0,4}\b/);
+        const conditionMatch = clean.match(/\b(BNIB|NEW|UNWORN|MINT|NOS|LNIB)\b/i);
+        const ref = refMatch ? refMatch[0].toUpperCase() : null;
+        const condition = conditionMatch ? conditionMatch[0].toUpperCase() : null;
+        const marketMedian = null;
+        const elapsed = (performance.now() - t0).toFixed(1);
+
+        return {
+          elapsed, vertical: "HOROLOGY_WTS",
+          fields: [
+            { key: "Reference", value: ref || "Not provided" },
+            { key: "Condition Grade", value: condition || "Not provided" },
+            { key: "Quoted Ask", value: askUsd ? `$${askUsd.toLocaleString()}` : "Unquoted" },
+            { key: "Market comp", value: "Not connected" }
+          ],
+          payload: { asset_class: "horology", reference: ref, condition, quoted_ask_usd: askUsd, market_median_usd: marketMedian, raw_excerpt: clean.slice(0, 240) }
+        };
+      }
+
+      function renderParsed() {
+        currentParsed = parseListing(rawInput.value, currentVertical);
+        statusText.textContent = `Parsed in ${currentParsed.elapsed} ms · ${currentParsed.vertical}`;
+        fieldsContainer.innerHTML = currentParsed.fields.map(f => `
+          <div class="deala-field-card">
+            <span class="deala-field-key">${escapeHtml(f.key)}</span>
+            <span class="deala-field-val">${escapeHtml(f.value)}</span>
+          </div>
+        `).join("");
+      }
+
+      function escapeHtml(str) {
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      function bytesToHex(buffer) { return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, "0")).join(""); }
+      function bytesToBase64(buffer) { const bytes = new Uint8Array(buffer); let bin = ""; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]); return btoa(bin); }
+
+      async function getOrCreateEd25519KeyPair(forceRotate = false) {
+        if (cachedKeyPair && !forceRotate) return cachedKeyPair;
+        if (window.crypto && window.crypto.subtle) {
+          try {
+            cachedKeyPair = await window.crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"]);
+            return cachedKeyPair;
+          } catch (_) {}
+        }
+        return null;
+      }
+
+      async function buildSignedReceipt(parsed, forceRotate = false) {
+        const canonicalPayload = JSON.stringify(parsed.payload);
+        const dataBytes = new TextEncoder().encode(canonicalPayload);
+        let sha256Hex = "0".repeat(64);
+        if (window.crypto && window.crypto.subtle) {
+          const hashBuf = await window.crypto.subtle.digest("SHA-256", dataBytes);
+          sha256Hex = bytesToHex(hashBuf);
+        }
+        const keyPair = await getOrCreateEd25519KeyPair(forceRotate);
+        let signatureB64 = "";
+        let publicKeyB64 = "";
+        let verified = false;
+        let algorithm = "Ed25519+SHA256";
+
+        if (keyPair && window.crypto && window.crypto.subtle) {
+          const sigBuf = await window.crypto.subtle.sign("Ed25519", keyPair.privateKey, dataBytes);
+          const pubRaw = await window.crypto.subtle.exportKey("raw", keyPair.publicKey);
+          verified = await window.crypto.subtle.verify("Ed25519", keyPair.publicKey, sigBuf, dataBytes);
+          signatureB64 = bytesToBase64(sigBuf);
+          publicKeyB64 = bytesToBase64(pubRaw);
+        } else {
+          throw new Error("Ed25519 is unavailable in this browser context. Use a supported browser on HTTPS or localhost.");
+        }
+
+        return {
+          receipt_version: "1.0.0",
+          receipt_id: `rcpt_${sha256Hex.slice(0, 12)}`,
+          issued_at: new Date().toISOString(),
+          algorithm,
+          payload_sha256: sha256Hex,
+          trade_record: parsed.payload,
+          provenance: { signer_role: "LOCAL_EPHEMERAL_DEMO_KEY", public_key_ed25519_b64: publicKeyB64, signature_b64: signatureB64, local_verification_passed: verified }
+        };
+      }
+
+      async function openAndSignModal(forceRotate = false) {
+        if (!currentParsed) renderParsed();
+        sigStatusEl.textContent = "Signing payload...";
+        modal.hidden = false;
+        currentReceipt = null; jsonCodeEl.textContent = ""; closeModalBtn.focus();
+        try { currentReceipt = await buildSignedReceipt(currentParsed, forceRotate); jsonCodeEl.textContent = JSON.stringify(currentReceipt, null, 2); sigStatusEl.textContent = currentReceipt.provenance.local_verification_passed ? "VALID · LOCAL DEMO KEY" : "INVALID SIGNATURE"; }
+        catch (error) { sigStatusEl.textContent = "NOT VERIFIED"; jsonCodeEl.textContent = error.message; }
+      }
+
+      function closeReceiptModal() {
+        modal.hidden = true;
+        if (lastTriggerEl && typeof lastTriggerEl.focus === "function") {
+          lastTriggerEl.focus();
+          lastTriggerEl = null;
         }
       }
-    });
 
-    function animate() {
-      requestAnimationFrame(animate);
-      // Gentle idle float
-      mesh.position.y = Math.sin(Date.now() * 0.001) * 0.1;
-      renderer.render(scene, camera);
-    }
-    animate();
+      function setVertical(vertical) {
+        currentVertical = vertical;
+        toggleButtons.forEach((btn) => {
+          const active = btn.dataset.vertical === vertical;
+          btn.classList.toggle("is-active", active);
+          btn.setAttribute("aria-pressed", String(active));
+        });
+        rawInput.value = SAMPLES[vertical];
+        renderParsed();
+      }
 
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    /* ============ SCROLLTRIGGER REVEALS ============ */
-    const words = document.querySelectorAll('.m-word');
-    gsap.to(words, {
-      opacity: 1,
-      stagger: 0.1,
-      scrollTrigger: { trigger: ".manifesto", start: "top 70%", end: "bottom 40%", scrub: true }
-    });
-
-    gsap.utils.toArray('.gsap-reveal').forEach((el) => {
-      gsap.fromTo(el, { y: 60, opacity: 0 }, {
-        y: 0, opacity: 1, duration: 1, ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 85%", toggleActions: "play none none reverse" }
-      });
-    });
-
-    gsap.utils.toArray('.mockup').forEach((el) => {
-      gsap.to(el, {
-        y: -20,
-        scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: true }
-      });
-    });
-
-    /* ============ FORM HANDLING ============ */
-    const form = document.getElementById('waitlistForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const successState = document.getElementById('successState');
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+      // Wire up the main generate button
+      toggleButtons.forEach((btn) => btn.addEventListener("click", () => setVertical(btn.dataset.vertical)));
+      resetBtn.addEventListener("click", () => { rawInput.value = SAMPLES[currentVertical]; renderParsed(); });
+      rawInput.addEventListener("input", renderParsed);
       
-      const name = document.getElementById('dealerName').value;
-      const email = document.getElementById('dealerEmail').value;
-      const trade = document.getElementById('dealerTrade').value;
+      openReceiptBtn.addEventListener("click", () => {
+        lastTriggerEl = openReceiptBtn;
+        openAndSignModal(false);
+      });
+      
+      reSignBtn.addEventListener("click", () => openAndSignModal(true));
+      
+      // Close handlers
+      closeModalBtn.addEventListener("click", closeReceiptModal);
+      modal.addEventListener("click", (e) => { if (e.target === modal) closeReceiptModal(); });
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeReceiptModal(); });
 
-      // 1. Set loading state
-      submitBtn.textContent = 'Stamping...';
-      submitBtn.disabled = true;
+      // Wire up footer triggers
+      const modalTriggers = Array.from(document.querySelectorAll("[data-open-receipt-modal]"));
+      modalTriggers.forEach((trigger) => {
+        trigger.addEventListener("click", (event) => {
+          event.preventDefault();
+          lastTriggerEl = trigger;
+          if (!currentParsed) {
+            renderParsed();
+          }
+          openAndSignModal(false);
+        });
+      });
 
-      // 2. Simulate API Call (Backend integration goes here)
-      setTimeout(() => {
-        // 3. Transition to success state
-        form.style.display = 'none';
-        successState.style.display = 'block';
+      copyJsonBtn.addEventListener("click", async () => {
+        if (!currentReceipt) return;
+        try {
+          await navigator.clipboard.writeText(JSON.stringify(currentReceipt, null, 2));
+          copyJsonBtn.textContent = "Copied!";
+          setTimeout(() => (copyJsonBtn.textContent = "Copy JSON"), 1400);
+        } catch (_) { copyJsonBtn.textContent = "Select manually"; }
+      });
+
+      downloadJsonBtn.addEventListener("click", () => {
+        if (!currentReceipt) return;
+        const blob = new Blob([JSON.stringify(currentReceipt, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = `${currentReceipt.receipt_id}.json`; a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      setVertical("watch");
+    })();
+
+    /* ============ ACCESS FORM PERSONALIZATION ============ */
+    (function () {
+      const TRADE_PRESETS = {
+        horology: { selectValue: "horology", badge: "04 · Cohort 01 Access · Horology & WTS Desks", subcopy: "Help match watches to buyers, revive collector leads and move inventory with the planned sales agent." },
+        automotive: { selectValue: "automotive", badge: "04 · Cohort 01 Access · Wholesale Auto & VIN Lanes", subcopy: "Help prioritize car buyers, draft follow-ups and move aged inventory with the planned sales agent." },
+        both: { selectValue: "both", badge: "04 · Cohort 01 Access · Multi-Vertical Inventory", subcopy: "Cohort 01 is capped at 20 active operators across horology and wholesale automotive." }
+      };
+      const TRADE_ALIASES = { watch: "horology", watches: "horology", horology: "horology", wts: "horology", auto: "automotive", car: "automotive", cars: "automotive", automotive: "automotive", vin: "automotive", both: "both", all: "both" };
+
+      const selectEl = document.getElementById("deala-trade-select");
+      const badgeEl = document.getElementById("deala-trade-badge");
+      const subcopyEl = document.getElementById("deala-trade-subcopy");
+      const formEl = document.getElementById("deala-access-form");
+      const businessEl = document.getElementById("deala-business-name");
+      const emailEl = document.getElementById("deala-work-email");
+      const whatsappEl = document.getElementById("deala-whatsapp");
+      const feedbackEl = document.getElementById("deala-form-feedback");
+
+      function resolveTradeParam() {
+        const params = new URLSearchParams(window.location.search);
+        return TRADE_ALIASES[(params.get("trade") || "").trim().toLowerCase()] || null;
+      }
+
+      function applyTradePersonalization(tradeKey) {
+        if (!tradeKey || !TRADE_PRESETS[tradeKey]) return;
+        const preset = TRADE_PRESETS[tradeKey];
+        if (selectEl) selectEl.value = preset.selectValue;
+        if (badgeEl) badgeEl.textContent = preset.badge;
+        if (subcopyEl) subcopyEl.textContent = preset.subcopy;
+      }
+
+      function normalizePhone(rawValue) {
+        const trimmed = (rawValue || "").trim();
+        if (!trimmed) return null;
+        const digits = trimmed.replace(/[^\d+]/g, "");
+        const numericOnly = digits.replace(/\D/g, "");
+        if (numericOnly.length < 7 || numericOnly.length > 15) return { valid: false, value: trimmed };
+        return { valid: true, value: digits };
+      }
+
+      function setFeedback(message, type) {
+        feedbackEl.textContent = message;
+        feedbackEl.classList.remove("is-error", "is-success");
+        if (type) feedbackEl.classList.add(type);
+      }
+
+      const initialTrade = resolveTradeParam();
+      if (initialTrade) applyTradePersonalization(initialTrade);
+      if (selectEl) selectEl.addEventListener("change", () => applyTradePersonalization(selectEl.value));
+
+      formEl.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const businessName = businessEl.value.trim();
+        const email = emailEl.value.trim();
+        const phoneResult = normalizePhone(whatsappEl.value);
+
+        if (!businessName) { setFeedback("Please enter your business or dealer name.", "is-error"); businessEl.focus(); return; }
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setFeedback("Please enter a valid work email address.", "is-error"); emailEl.focus(); return; }
+        if (phoneResult && !phoneResult.valid) { setFeedback("Leave WhatsApp blank or enter a valid number (7–15 digits).", "is-error"); whatsappEl.focus(); return; }
+
+        const btn = formEl.querySelector("button[type='submit']");
+        btn.textContent = "Stamping...";
+        btn.disabled = true;
         
-        // 4. Inject the user's data into the receipt
-        document.getElementById('r-name').textContent = name;
-        
-        // Generate a random hex string for the mock Ed25519 signature
-        const hex = Array.from({length: 12}, () => Math.floor(Math.random()*16).toString(16)).join('');
-        document.getElementById('r-mark').textContent = `DL-0${Math.floor(Math.random() * 9) + 1}`;
-        
-        // Animate the success state in
-        gsap.fromTo(successState, 
-          { opacity: 0, y: 20 }, 
-          { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }
-        );
-      }, 1500); // 1.5 second mock delay
-    });
+        setTimeout(() => {
+            // Keep entered values; no application has been submitted.
+            btn.textContent = "Join Cohort 01 Queue";
+            btn.disabled = false;
+            setFeedback("Preview only: no application was sent. Contact desk@deala.trade to inquire about the pilot.", "");
+        }, 1500);
+      });
+    })();
+  </script>
+  <script>
+  (()=>{
+    const demo={watch:{value:'$28,450',tasks:[['Buyer match','Submariner 126610LV','Buyer asked for this reference and full set. Confirm availability before quoting.','Hey, I have a potential full-set 126610LV match for your request. Still looking? I can confirm condition, price and availability.'],['Follow up','GMT-Master II inquiry','The example lead has not replied in two days. Ask whether their search is still active.','Checking in on the GMT we discussed. Are you still looking, or has your target changed? Happy to send current options.'],['Move inventory','Datejust / aged stock','Review dealer-set floor before offering this example item.','I have a Datejust available for review. Let me know your target and I can share details if we are aligned.']]},auto:{value:'$112,900',tasks:[['Buyer match','2024 Mercedes GLE','The sample buyer asked for a black SUV. Confirm stock and preferred appointment time.','Hi, I may have a GLE that fits what you were looking for. Are you still shopping? I can confirm availability and arrange a viewing.'],['Follow up','Trade-in inquiry','The example buyer has an open appraisal conversation. Request mileage and a convenient time.','Following up on your trade-in. Can you confirm current mileage and a good time for an appraisal?'],['Move inventory','SUV / 63 days aged','Review the vehicle cost and price floor before drafting a wholesale offer.','We have an SUV available for wholesale review. Are you buying this week? I can share the VIN, condition and asking price after confirmation.']]}};
+    let trade='watch', selected=0;const approved={watch:new Map(),auto:new Map()},drafts={watch:new Map(),auto:new Map()};const $=id=>document.getElementById(id);
+    function draw(){const t=demo[trade],a=approved[trade];$('stat1').textContent=String(3-a.size);$('stat2').textContent=t.value;$('stat3').textContent=String(2-[1,2].filter(i=>a.has(i)).length);$('agent-tasks').replaceChildren();t.tasks.forEach((task,i)=>{const b=document.createElement('button');b.type='button';b.className='agent-task';b.setAttribute('aria-pressed',String(i===selected));const info=document.createElement('span'),title=document.createElement('strong'),desc=document.createElement('small'),state=document.createElement('span');title.textContent=task[0];desc.textContent=task[1];info.append(title,desc);state.className='task-state';state.textContent=a.has(i)?'APPROVED':'REVIEW ↗';b.append(info,state);b.onclick=()=>{selected=i;draw();$('agent-tasks').children[i].focus();};$('agent-tasks').append(b);});const task=t.tasks[selected];$('task-title').textContent=task[1];$('task-reason').textContent=task[2];$('agent-draft').value=drafts[trade].get(selected)??task[3];$('agent-approve').textContent=a.has(selected)?'Approved locally ✓':'Approve draft locally ↗';$('agent-approve').disabled=a.has(selected);$('agent-feedback').textContent=a.has(selected)?'Draft approved in this session. No message sent.':'No message is sent in this demo.';document.querySelectorAll('[data-agent-trade]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.agentTrade===trade)));}
+    document.querySelectorAll('[data-agent-trade]').forEach(b=>b.onclick=()=>{trade=b.dataset.agentTrade;selected=0;draw();});$('agent-draft').addEventListener('input',()=>{drafts[trade].set(selected,$('agent-draft').value);approved[trade].delete(selected);$('agent-approve').disabled=false;$('agent-approve').textContent='Approve draft locally ↗';$('agent-feedback').textContent='Draft changed; review again.';const row=$('agent-tasks').children[selected];row.querySelector('.task-state').textContent='REVIEW ↗';$('stat1').textContent=String(3-approved[trade].size);$('stat3').textContent=String(2-[1,2].filter(i=>approved[trade].has(i)).length);});$('agent-approve').onclick=()=>{const value=$('agent-draft').value.trim();if(!value){$('agent-feedback').textContent='Enter a draft before approving.';return;}approved[trade].set(selected,value);draw();};draw();
+  })();
   </script>
 </body>
 </html>
