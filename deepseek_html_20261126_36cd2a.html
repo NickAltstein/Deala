@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deala® — Work the trade.</title>
+  <meta name="description" content="Deala watches the lot, works the leads, and stamps every action with a verifiable receipt. Nothing moves without your signature. First 20 dealers only." />
+  <meta name="theme-color" content="#0A0A0A" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/300.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/400.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/500.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/600.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/400.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/500.css" />
+  <style>
+    /* ============ TOKENS ============ */
+    :root {
+      --bg: #050505;
+      --card: #0A0A0A;
+      --panel: #111111;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-hover: rgba(255, 255, 255, 0.15);
+      --white: #FFFFFF;
+      --body: #888888;
+      --brass: #B8892F;
+      --brass-glow: rgba(184, 137, 47, 0.15);
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+      --shadow-card: 0 20px 40px -20px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    /* ============ RESET ============ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: auto; }
+    html.lenis, html.lenis body { height: auto; }
+    .lenis.lenis-smooth { scroll-behavior: auto !important; }
+    body {
+      background: var(--bg);
+      color: var(--body);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    h1, h2, h3 { color: var(--white); font-family: var(--font-display); font-weight: 500; letter-spacing: -0.02em; }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; color: inherit; border: none; background: none; }
+    button { cursor: pointer; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .kicker {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--font-display); font-size: 11px; font-weight: 500;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--body);
+    }
+    .kicker::before { content: ''; width: 20px; height: 1px; background: var(--brass); }
+    .sec-title { font-size: clamp(32px, 4vw, 52px); line-height: 1.1; margin-top: 16px; }
+    
+    /* ============ NAV ============ */
+    .nav {
+      position: fixed; inset: 0 0 auto 0; z-index: 50;
+      border-bottom: 1px solid transparent;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .nav.scrolled { background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(12px); border-bottom-color: var(--line); }
+    .nav-inner { max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo svg { height: 24px; width: auto; }
+    .btn-ghost {
+      border: 1px solid var(--line); padding: 10px 20px; border-radius: 99px;
+      font-family: var(--font-display); font-size: 13px; transition: 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--white); color: var(--white); }
+
+    /* ============ HERO ============ */
+    .hero { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+    .hero-canvas { position: absolute; inset: 0; z-index: 1; opacity: 0; pointer-events: none; }
+    .hero-content { position: relative; z-index: 2; text-align: center; }
+    .hero h1 { font-size: clamp(48px, 8vw, 96px); line-height: 1.05; margin-bottom: 24px; }
+    .hero p { font-size: 18px; max-width: 600px; margin: 0 auto; }
+    .hero-logo { width: min(80vw, 400px); margin-bottom: 40px; }
+
+    /* ============ MANIFESTO ============ */
+    .manifesto { padding: 20vh 24px; text-align: center; }
+    .manifesto-line { font-family: var(--font-display); font-size: clamp(32px, 5vw, 64px); color: var(--white); line-height: 1.2; }
+    .m-word { opacity: 0.2; transition: opacity 0.1s; }
+    .m-word.active { opacity: 1; }
+
+    /* ============ TWO TRADES (SPLIT) ============ */
+    .trades { padding: 100px 0; border-top: 1px solid var(--line); }
+    .trades-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 40px; }
+    .trade-card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 40px;
+      position: relative; overflow: hidden; box-shadow: var(--shadow-card);
+    }
+    .trade-card h3 { font-size: 28px; margin-bottom: 16px; }
+    .trade-card p { font-size: 15px; margin-bottom: 32px; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      font-family: var(--font-mono); font-size: 11px; padding: 6px 12px;
+      border-radius: 6px; background: var(--panel); border: 1px solid var(--line); color: var(--white);
+    }
+    .trade-card .glow { position: absolute; width: 200px; height: 200px; background: var(--brass); filter: blur(100px); opacity: 0.1; top: -100px; right: -100px; pointer-events: none; }
+
+    /* ============ BENTO GRID (ARC.AI STYLE) ============ */
+    .bento-section { padding: 120px 0; background: #070707; border-top: 1px solid var(--line); }
+    .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; margin-top: 60px; }
+    .b-card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 32px;
+      box-shadow: var(--shadow-card); display: flex; flex-direction: column; justify-content: space-between;
+      position: relative; overflow: hidden;
+    }
+    .b-card:hover { border-color: var(--line-hover); }
+    
+    .b-large { grid-column: span 8; }
+    .b-small { grid-column: span 4; }
+    .b-half { grid-column: span 6; }
+    .b-full { grid-column: span 12; }
+
+    .b-card h4 { font-size: 24px; margin-bottom: 12px; color: var(--white); }
+    .b-card p { font-size: 15px; }
+    
+    /* UI Mockups inside Bento */
+    .mockup {
+      background: #000000; border: 1px solid var(--line); border-radius: 12px;
+      padding: 20px; font-family: var(--font-mono); font-size: 12px; margin-top: 32px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    }
+    .m-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--body); }
+    .m-row span:last-child { color: var(--white); }
+    .m-highlight { color: var(--brass) !important; }
+    .m-green { color: #4ADE80 !important; }
+
+    /* ============ FORM ============ */
+    .access { padding: 120px 0; border-top: 1px solid var(--line); }
+    .access-card {
+      max-width: 600px; margin: 40px auto 0; background: var(--card);
+      border: 1px solid var(--line); border-radius: 24px; padding: 40px; box-shadow: var(--shadow-card);
+    }
+    .field { margin-bottom: 24px; }
+    .field label { display: block; font-family: var(--font-display); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; color: var(--body); }
+    .field input, .field select {
+      width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      padding: 16px; color: var(--white); outline: none; transition: 0.2s;
+    }
+    .field input:focus, .field select:focus { border-color: var(--brass); }
+    .btn-brass {
+      width: 100%; background: var(--brass); color: #000; font-family: var(--font-display);
+      font-weight: 600; padding: 18px; border-radius: 12px; transition: 0.2s; font-size: 16px;
+    }
+    .btn-brass:hover { background: #C99A3F; transform: translateY(-1px); }
+
+    @media (max-width: 900px) {
+      .trades-grid, .bento-grid { grid-template-columns: 1fr; }
+      .b-large, .b-small, .b-half { grid-column: span 1; }
+      .hero-canvas { display: none; } /* Fallback for mobile */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG DEFS (Logo) -->
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="metalD" gradientUnits="userSpaceOnUse" x1="24" y1="20" x2="186" y2="180">
+        <stop offset="0" stop-color="#F4F6F9"/><stop offset=".25" stop-color="#CBD3DD"/>
+        <stop offset=".45" stop-color="#99A0A8"/><stop offset=".6" stop-color="#E9E6E0"/>
+        <stop offset=".75" stop-color="#B7BDC5"/><stop offset="1" stop-color="#E0E3E7"/>
+      </linearGradient>
+      <linearGradient id="metalW" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="100">
+        <stop offset="0" stop-color="#F5F7F9"/><stop offset=".35" stop-color="#C2C8CF"/>
+        <stop offset=".55" stop-color="#8B929A"/><stop offset=".72" stop-color="#E6E9EC"/>
+        <stop offset="1" stop-color="#AEB4BB"/>
+      </linearGradient>
+      <symbol id="deala-mono" viewBox="0 0 210 200">
+        <g fill="url(#metalD)" stroke="#FFFFFF" stroke-opacity=".16" stroke-width="1">
+          <path d="M24 20 L52 20 L52 116 L24 144 Z"/><path d="M24 158 L52 130 L52 180 L24 180 Z"/>
+          <path d="M64 20 L106 20 C154 20 186 54 186 100 C186 146 154 180 106 180 L64 180 L64 156 L106 156 C140 156 162 134 162 100 C162 66 140 44 106 44 L64 44 Z"/>
+          <path d="M66 156 L66 120 L84 111 L84 156 Z"/><path d="M92 156 L92 94 L110 85 L110 156 Z"/><path d="M118 156 L118 68 L136 59 L136 156 Z"/>
+        </g>
+      </symbol>
+      <symbol id="deala-lockup" viewBox="0 0 668 160">
+        <use href="#deala-mono" x="0" y="0" width="168" height="160"/>
+        <g fill="url(#metalW)" stroke="#FFFFFF" stroke-opacity=".14" stroke-width=".8">
+          <path transform="translate(190,30)" fill-rule="evenodd" d="M0 0 H32 C64 0 82 20 82 50 C82 80 64 100 32 100 H0 Z M16 16 H32 C54 16 66 28 66 50 C66 72 54 84 32 84 H16 Z"/>
+          <path transform="translate(296,30)" d="M0 0 H56 V16 H16 V42 H52 V58 H16 V84 H56 V100 H0 Z"/>
+          <path transform="translate(378,30)" d="M0 100 L34 0 L50 0 L84 100 L66 100 L42 27 L18 100 Z"/>
+          <path transform="translate(488,30)" d="M0 0 H16 V84 H56 V100 H0 Z"/>
+          <path transform="translate(570,30)" d="M0 100 L34 0 L50 0 L84 100 L66 100 L42 27 L18 100 Z"/>
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo"><svg viewBox="0 0 668 160"><use href="#deala-lockup"/></svg></a>
+      <a href="#access" class="btn-ghost">Request access</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="hero">
+      <canvas class="hero-canvas" id="heroCanvas"></canvas>
+      <div class="hero-content" id="heroContent">
+        <div class="hero-logo" id="heroLogo"><svg viewBox="0 0 668 160"><use href="#deala-lockup"/></svg></div>
+        <h1 id="heroTitle">Work the trade.</h1>
+        <p id="heroSub">It watches the lot, works the leads, and stamps every action with a verifiable receipt. Nothing moves without your signature.</p>
+      </div>
+    </section>
+
+    <!-- MANIFESTO -->
+    <section class="manifesto">
+      <p class="manifesto-line" id="manifestoLine">
+        <span class="m-word">Nothing</span> <span class="m-word">moves</span> <span class="m-word">without</span> <span class="m-word">your</span> <span class="m-word" style="border-bottom: 1px solid var(--brass);">signature.</span>
+      </p>
+    </section>
+
+    <!-- TWO TRADES -->
+    <section class="trades wrap">
+      <p class="kicker">Built for the floor</p>
+      <h2 class="sec-title">Two trades. One standard.</h2>
+      
+      <div class="trades-grid">
+        <!-- Watch Dealers -->
+        <div class="trade-card gsap-reveal">
+          <div class="glow"></div>
+          <h3>For Watch Dealers</h3>
+          <p>Stop scrolling through 100 WhatsApp groups. Deala parses D2D WTS posts, matches your WTB list, and drafts the reply. Caseback verified. Spread calculated.</p>
+          <div class="tag-list">
+            <span class="tag">Chrono24 Sync</span>
+            <span class="tag">Caseback AI</span>
+            <span class="tag">D2D Spread</span>
+            <span class="tag">WTB Matching</span>
+          </div>
+        </div>
+
+        <!-- Car Dealers -->
+        <div class="trade-card gsap-reveal">
+          <div class="glow" style="background: #3b82f6; opacity: 0.05;"></div>
+          <h3>For Car Dealers</h3>
+          <p>Track aged inventory and floorplan bleed before it eats your margin. Deala watches Manheim lanes, parses leads, and drafts the follow-up.</p>
+          <div class="tag-list">
+            <span class="tag">Manheim Tracking</span>
+            <span class="tag">Floorplan Drag</span>
+            <span class="tag">VIN Audit</span>
+            <span class="tag">Lead Follow-up</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENTO GRID (The Arc.AI Look) -->
+    <section class="bento-section">
+      <div class="wrap">
+        <p class="kicker">The engine room</p>
+        <h2 class="sec-title">Industrial Provenance.</h2>
+
+        <div class="bento-grid">
+          <!-- Large Card: The WhatsApp Parser -->
+          <div class="b-card b-large gsap-reveal">
+            <div>
+              <h4>Zero missed deals.</h4>
+              <p>Deala silently reads your groups, extracts the reference and price, and scores the urgency in under 2 seconds.</p>
+            </div>
+            <div class="mockup">
+              <div class="m-row"><span>INBOUND_MSG</span><span class="m-highlight">"WTS 126610LV full set 2022 card, 14.5k"</span></div>
+              <div class="m-row"><span>PARSED_REF</span><span>126610LV</span></div>
+              <div class="m-row"><span>PARSED_PRICE</span><span>$14,500</span></div>
+              <div class="m-row"><span>URGENCY_SCORE</span><span class="m-green">99 (WTB MATCH)</span></div>
+            </div>
+          </div>
+
+          <!-- Small Card: The Receipt -->
+          <div class="b-card b-small gsap-reveal">
+            <div>
+              <h4>The Deala Stamp.</h4>
+              <p>Every action is bound to an Ed25519 signature. If the data changes, the stamp breaks.</p>
+            </div>
+            <div class="mockup" style="border-color: var(--brass); box-shadow: 0 0 20px var(--brass-glow);">
+              <div class="m-row"><span>RECEIPT_ID</span><span>#0147</span></div>
+              <div class="m-row"><span>SHA-256</span><span>9f3a...c21e</span></div>
+              <div class="m-row"><span>ED25519</span><span class="m-highlight">✓ VALID</span></div>
+            </div>
+          </div>
+
+          <!-- Half Card: Margins -->
+          <div class="b-card b-half gsap-reveal">
+            <div>
+              <h4>Know the spread.</h4>
+              <p>The agent calculates real-time comps and flags anomalies before you commit capital.</p>
+            </div>
+            <div class="mockup">
+              <div class="m-row"><span>BID</span><span>24.10</span></div>
+              <div class="m-row"><span>ASK</span><span>24.65</span></div>
+              <div class="m-row"><span>SPREAD</span><span class="m-green">+0.55 (2.3%)</span></div>
+            </div>
+          </div>
+
+          <!-- Half Card: Velocity -->
+          <div class="b-card b-half gsap-reveal">
+            <div>
+              <h4>Move the metal.</h4>
+              <p>Aged inventory gets surfaced with a drafted wholesale blast, awaiting your one-tap approval.</p>
+            </div>
+            <div class="mockup">
+              <div class="m-row"><span>UNIT 114</span><span class="m-highlight">63 DAYS AGED</span></div>
+              <div class="m-row"><span>ACTION</span><span>Draft D2D Blast</span></div>
+              <div class="m-row"><span>STATUS</span><span>Awaiting Signature</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACCESS FORM -->
+    <section id="access" class="access">
+      <div class="wrap" style="text-align: center;">
+        <p class="kicker" style="justify-content: center;">01 · Access</p>
+        <h2 class="sec-title">Twenty marks. Then the door closes.</h2>
+        
+        <div class="access-card gsap-reveal">
+          <form id="waitlistForm">
+            <div class="field">
+              <label>Business / Dealer Name</label>
+              <input type="text" placeholder="e.g. Apex Motors or Horology Co." required />
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email" placeholder="you@dealership.com" required />
+            </div>
+            <div class="field">
+              <label>Primary Trade</label>
+              <select>
+                <option>Automotive</option>
+                <option>Horology (Watches)</option>
+                <option>Both</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-brass">Request access</button>
+            <p style="font-size: 12px; margin-top: 16px;">First 20 operators only. We verify trade credentials.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- GSAP & THREE.JS (Loaded via CDN for instant testing) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ============ LENIS SMOOTH SCROLL ============ */
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smooth: true,
+    });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+
+    /* ============ NAV SCROLL STATE ============ */
+    ScrollTrigger.create({
+      start: 'top -50',
+      onUpdate: (self) => {
+        document.getElementById('nav').classList.toggle('scrolled', self.scroll() > 50);
+      }
+    });
+
+    /* ============ THREE.JS HERO MONOGRAM ============ */
+    const canvas = document.getElementById('heroCanvas');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.z = 5;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Environment Map for Metal
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+    // Fake a studio environment with a simple gradient or just use lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2);
+    dirLight1.position.set(5, 5, 5);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0xB8892F, 1); // Brass kiss
+    dirLight2.position.set(-5, -5, 2);
+    scene.add(dirLight2);
+
+    // Extruded Geometry (The D)
+    const shape = new THREE.Shape();
+    // ... (Simplified D shape for testing, replace with exact SVG path if needed)
+    shape.moveTo(0, 0);
+    shape.lineTo(1.5, 0);
+    shape.lineTo(1.5, 2);
+    shape.lineTo(0, 2);
+    shape.lineTo(0, 0);
+    // Cutout
+    const hole = new THREE.Path();
+    hole.moveTo(0.5, 0.5);
+    hole.lineTo(1, 0.5);
+    hole.lineTo(1, 1.5);
+    hole.lineTo(0.5, 1.5);
+    hole.lineTo(0.5, 0.5);
+    shape.holes.push(hole);
+
+    // In a real app, you'd use THREE.SVGLoader to parse the actual Deala D path.
+    // For this test, we create a stylized placeholder.
+    const extrudeSettings = { depth: 0.5, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 0.1, bevelThickness: 0.1 };
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    geometry.center();
+    
+    const material = new THREE.MeshStandardMaterial({ 
+      color: 0xdddddd, 
+      metalness: 1.0, 
+      roughness: 0.2 
+    });
+    
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    // GSAP ScrollTrigger for 3D Monogram
+    gsap.to(mesh.rotation, {
+      y: Math.PI * 4,
+      z: Math.PI * 2,
+      scrollTrigger: {
+        trigger: "#hero",
+        start: "top top",
+        end: "bottom top",
+        scrub: 1,
+        pin: true,
+        onUpdate: (self) => {
+          // Fade out the text as we scroll
+          gsap.to("#heroContent", { opacity: 1 - self.progress * 3, duration: 0.1, overwrite: true });
+          // Reveal the canvas
+          if (self.progress > 0.05 && parseFloat(canvas.style.opacity) === 0) {
+             gsap.to(canvas, { opacity: 1, duration: 0.5 });
+             gsap.to("#heroLogo", { opacity: 0, duration: 0.5 });
+          } else if (self.progress <= 0.05) {
+             gsap.to(canvas, { opacity: 0, duration: 0.5 });
+             gsap.to("#heroLogo", { opacity: 1, duration: 0.5 });
+          }
+        }
+      }
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    /* ============ SCROLLTRIGGER TEXT REVEALS ============ */
+    // Manifesto Text
+    const words = document.querySelectorAll('.m-word');
+    gsap.to(words, {
+      opacity: 1,
+      stagger: 0.1,
+      scrollTrigger: {
+        trigger: ".manifesto",
+        start: "top 70%",
+        end: "bottom 40%",
+        scrub: true
+      }
+    });
+
+    // Staggered Bento Grid Reveals
+    gsap.utils.toArray('.gsap-reveal').forEach((el) => {
+      gsap.fromTo(el, 
+        { y: 60, opacity: 0 },
+        { 
+          y: 0, 
+          opacity: 1, 
+          duration: 1, 
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+    });
+
+    // Parallax on the mockup panels inside the cards
+    gsap.utils.toArray('.mockup').forEach((el) => {
+      gsap.to(el, {
+        y: -20,
+        scrollTrigger: {
+          trigger: el,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true
+        }
+      });
+    });
+
+  </script>
+</body>
+</html>
