@@ -36,3 +36,5 @@ Imported into `NickAltstein/Deala` under `site/` (deploy `site/` as the web root
 - `index.html`: footer reads `DEALA / SPEC v0.3` and adds a `Research` link. The homepage is therefore no longer byte-for-byte identical to the packaged version; the spinning D, intro and navigation are unchanged.
 
 Still open before publishing: `data-booking-url` on `#pilot-booking` is empty (button stays hidden) until a verified HTTPS booking URL is supplied; live HTTPS checks of in-browser Ed25519 verification and of `https://deala.trade/verify/?sample=1` (metal card QR). CDN scripts and fonts are version-pinned but have no Subresource Integrity attributes.
+
+- 2026-11-26: homepage `Explore Deala` link restyled as a glowing button (plain CSS port of a Tailwind/Framer button; same label and link, hover glow, reduced-motion respected).
