@@ -1,0 +1,15 @@
+DEALA / DESIGN PARTNER REVIEW
+
+Initial markets: Time-Deala (horology) and Auto-Deala (automotive).
+
+Purpose: evaluate whether authorized historical commercial intent and changed evidence can identify useful unresolved opportunities.
+
+Review agenda
+1. Identify a representative unresolved commercial workflow.
+2. Establish lawful data access, scope, retention and suppression requirements.
+3. Define evidence, decision constraints and a baseline workflow.
+4. Agree on independent outcome measures, review process and pilot readiness gates.
+
+Proposed posture: read-only ingestion, internal recommendations and human-reviewed drafts. No autonomous external messaging, offers, payments or financing decisions.
+
+Pilot readiness and availability are subject to validation. Do not include confidential customer or dealer records in an initial inquiry. Scheduling details will be published once configured.

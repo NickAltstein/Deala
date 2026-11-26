@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deala — Long-horizon commercial runtime.</title>
+  <meta name="description" content="Deala is developing a long-horizon commercial agent runtime: dependency-aware memory, event-driven re-evaluation, deterministic authorization and verifiable records." />
+  <meta name="theme-color" content="#050505" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/300.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/400.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/500.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/600.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/400.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/500.css" />
+  <style>
+    /* ============ TOKENS ============ */
+    :root {
+      --bg: #050505;
+      --card: #0A0A0A;
+      --panel: #111111;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-hover: rgba(255, 255, 255, 0.15);
+      --white: #FFFFFF;
+      --body: #888888;
+      --silver: #C0C0C0;
+      --silver-glow: rgba(192, 192, 192, 0.12);
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+      --shadow-card: 0 20px 40px -20px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    /* ============ RESET ============ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: auto; }
+    html.lenis, html.lenis body { height: auto; }
+    .lenis.lenis-smooth { scroll-behavior: auto !important; }
+    body {
+      background: var(--bg);
+      color: var(--body);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    h1, h2, h3 { color: var(--white); font-family: var(--font-display); font-weight: 500; letter-spacing: -0.02em; }
+    a { color: inherit; text-decoration: none; cursor: pointer; }
+    button, input, select, textarea { font: inherit; color: inherit; border: none; background: none; }
+    button { cursor: pointer; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+    
+    #access, .deala-engine-section { scroll-margin-top: 96px; }
+
+    .kicker {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--font-display); font-size: 11px; font-weight: 500;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--body);
+    }
+    .kicker::before { content: ''; width: 20px; height: 1px; background: var(--silver); }
+    .sec-title { font-size: clamp(32px, 4vw, 52px); line-height: 1.1; margin-top: 16px; }
+    
+    /* ============ NAV ============ */
+    .nav {
+      position: fixed; inset: 0 0 auto 0; z-index: 50;
+      border-bottom: 1px solid transparent;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .nav.scrolled { background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(12px); border-bottom-color: var(--line); }
+    .nav-inner { max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo svg { height: 24px; width: auto; }
+    .btn-ghost {
+      border: 1px solid var(--line); padding: 10px 20px; border-radius: 99px;
+      font-family: var(--font-display); font-size: 13px; transition: 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--white); color: var(--white); }
+
+    /* ============ HERO ============ */
+    .hero { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+    .hero-canvas { position: absolute; inset: 0; z-index: 1; opacity: 0; pointer-events: none; }
+    
+    .hero-content { position: relative; z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; padding: 0 24px; }
+    .hero h1 { font-size: clamp(40px, 6vw, 80px); line-height: 1.05; margin-bottom: 24px; max-width: 900px; }
+    .hero p { font-size: 18px; max-width: 640px; margin: 0 auto 32px; }
+    
+    .hero-logo { width: min(80vw, 400px); margin-bottom: 40px; perspective: 1000px; }
+    @media (max-width: 900px) { .hero-logo svg { animation: tilt 6s ease-in-out infinite; transform-origin: center; } }
+    @keyframes tilt { 0%, 100% { transform: rotateY(0deg) rotateX(0deg); } 25% { transform: rotateY(10deg) rotateX(5deg); } 75% { transform: rotateY(-10deg) rotateX(-5deg); } }
+
+    /* ============ MANIFESTO ============ */
+    .manifesto { padding: 15vh 24px; text-align: center; border-top: 1px solid var(--line); }
+    .manifesto-line { font-family: var(--font-display); font-size: clamp(32px, 5vw, 64px); color: var(--white); line-height: 1.2; }
+    .m-word { opacity: 1; transition: opacity 0.1s; }
+
+    /* ============ TWO TRADES ============ */
+    .trades { padding: 100px 0; border-top: 1px solid var(--line); }
+    .trades-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 40px; }
+    .trade-card {
+      background: radial-gradient(ellipse at 12% 0%, #292929 0%, #151515 38%, #090909 82%);
+      border: 1px solid rgba(255,255,255,.16); border-radius: 24px; padding: 40px;
+      position: relative; overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 20px 50px rgba(0,0,0,.4);
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .trade-card:hover { border-color: rgba(255,255,255,.25); }
+    .trade-card h3 { font-size: 28px; margin-bottom: 16px; font-weight: 400; letter-spacing: -0.04em; }
+    .trade-card p { font-size: 15px; margin-bottom: 32px; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      font-family: var(--font-mono); font-size: 11px; padding: 6px 12px;
+      border-radius: 100px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); color: var(--white);
+    }
+
+    /* ============ TRACTION BAR ============ */
+    .network-strip { position:relative; background:linear-gradient(90deg,#090909,#121212 50%,#090909); border-block:1px solid #8c8c8c66; box-shadow:0 0 32px #8c8c8c0c; }
+    .network-inner { display:grid; grid-template-columns:1.15fr repeat(4,1fr); align-items:center; gap:20px; padding-block:19px; font-family:var(--font-mono); }
+    .network-label { display:flex; align-items:center; gap:10px; color:#c4c4c4; font-size:10px; letter-spacing:.09em; text-transform:uppercase; }
+    .network-dot { width:7px; height:7px; border:1px solid #b3b3b3; border-radius:50%; box-shadow:0 0 10px #8c8c8c55; flex:none; }
+    .network-metric { border-left:1px solid #8c8c8c33; padding-left:20px; min-width:0; }
+    .network-metric strong { display:block; color:#ededed; font-size:clamp(16px,2vw,24px); font-weight:500; line-height:1.2; letter-spacing:-.06em; }
+    .network-metric small { font-size:10px; color:#aeaeae; display:block; margin-top:4px; line-height:1.5; }
+
+    /* ============ ENGINE ROOM (INTERACTIVE) ============ */
+    .deala-engine-section { padding: 100px 0; background: #070707; border-top: 1px solid var(--line); }
+    .deala-engine-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 32px; }
+    .deala-toggle-group { display: inline-flex; background: #111; border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; }
+    .deala-toggle-btn { background: transparent; color: var(--body); border: 0; border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .deala-toggle-btn.is-active { background: var(--white); color: var(--bg); }
+    
+    .deala-engine-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    .deala-panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-card); }
+    .deala-panel-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .deala-label { font-size: 11px; letter-spacing: 0.1em; color: var(--body); font-family: var(--font-mono); }
+    .deala-link-btn { background: none; border: 0; color: var(--silver); font-size: 12px; cursor: pointer; text-decoration: underline; }
+    .deala-textarea { width: 100%; background: #000; color: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 12px; font-size: 13px; font-family: var(--font-mono); resize: vertical; }
+    .deala-textarea:focus { outline: 1px solid var(--silver); }
+    
+    .deala-parser-meta { display: flex; align-items: center; gap: 8px; margin: 16px 0; font-size: 12px; color: var(--body); font-family: var(--font-mono); }
+    .deala-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; }
+    .deala-fields-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .deala-field-card { background: #000; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+    .deala-field-key { display: block; font-size: 10px; text-transform: uppercase; color: var(--body); margin-bottom: 4px; font-family: var(--font-mono); }
+    .deala-field-val { font-size: 14px; font-weight: 600; color: var(--white); word-break: break-word; font-family: var(--font-mono); }
+    
+    .deala-primary-btn { background: var(--silver); color: #000; border-radius: 10px; padding: 12px 18px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; width: 100%; border: 0; }
+    .deala-primary-btn:hover { background: #9d9d9d; }
+    
+    .deala-pillars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .deala-pillar { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow-card); }
+    .deala-step-num { display: inline-block; font-size: 11px; color: var(--silver); font-family: var(--font-mono); margin-bottom: 8px; }
+    .deala-pillar h3 { margin: 0 0 8px; font-size: 16px; font-weight: 500; }
+    .deala-pillar p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--body); }
+
+    /* ============ CREDIBILITY & GUARDRAILS ============ */
+    .cred-section { padding: 100px 0; background: var(--bg); border-top: 1px solid var(--line); }
+    .cred-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; margin-top: 40px; }
+    .cred-list { list-style: none; }
+    .cred-list li { margin-bottom: 24px; padding-left: 32px; position: relative; }
+    .cred-list li::before { content: '✓'; position: absolute; left: 0; top: 2px; color: var(--silver); font-weight: bold; }
+    .cred-list h4 { color: var(--white); font-size: 18px; margin-bottom: 8px; font-weight: 500; }
+    .cred-list p { font-size: 14px; line-height: 1.6; }
+    .quote-card { background: var(--card); border-left: 2px solid var(--silver); padding: 32px; border-radius: 0 16px 16px 0; }
+    .quote-card p { font-size: 18px; font-style: italic; color: var(--white); line-height: 1.5; margin-bottom: 16px; }
+    .quote-author { font-family: var(--font-mono); font-size: 12px; color: var(--silver); text-transform: uppercase; }
+
+    /* ============ ACCESS FORM ============ */
+    .deala-access-section { padding: 120px 0; border-top: 1px solid var(--line); }
+    .deala-access-card { max-width: 600px; margin: 0 auto; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 40px; box-shadow: var(--shadow-card); }
+    .deala-access-eyebrow { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--silver); font-family: var(--font-mono); text-align: center; }
+    .deala-access-title { margin: 0 0 8px; font-size: 32px; text-align: center; font-weight: 400; }
+    .deala-access-subcopy { margin: 0 0 32px; font-size: 14px; color: var(--body); text-align: center; }
+    .deala-access-form { display: grid; gap: 20px; }
+    .deala-field { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+    .deala-field-label { font-size: 12px; font-weight: 600; color: var(--white); font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.1em; }
+    .deala-optional { font-weight: 400; color: var(--body); text-transform: none; letter-spacing: 0; font-family: var(--font-body); }
+    .deala-input { width: 100%; background: #000; color: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 14px; transition: 0.2s; }
+    .deala-input:focus { outline: none; border-color: var(--silver); }
+    .deala-submit-btn { margin-top: 8px; width: 100%; border: 0; border-radius: 12px; padding: 18px; font-size: 16px; font-weight: 600; background: var(--silver); color: #000; cursor: pointer; transition: 0.2s; }
+    .deala-submit-btn:hover { background: #9d9d9d; transform: translateY(-1px); }
+    .deala-form-feedback { margin: 0; font-size: 13px; text-align: center; color: var(--body); }
+    .deala-form-feedback.is-error { color: #8e8e8e; }
+    .deala-form-feedback.is-success { color: #4ADE80; }
+
+    /* ============ RECEIPT MODAL ============ */
+    .deala-modal-backdrop { position: fixed; inset: 0; background: rgba(3, 6, 12, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 9999; }
+    .deala-modal-backdrop[hidden] { display: none; }
+    .deala-modal-card { width: 100%; max-width: 680px; background: #0A0A0A; border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8); }
+    .deala-modal-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+    .deala-modal-title { margin: 0; font-size: 20px; }
+    .deala-close-btn { background: #111; color: var(--body); border: 1px solid var(--line); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; }
+    .deala-verify-banner { display: flex; justify-content: space-between; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ADE80; border-radius: 8px; padding: 12px; font-size: 13px; margin-bottom: 16px; font-family: var(--font-mono); }
+    .deala-json-box { background: #000; border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 0 0 16px; max-height: 340px; overflow: auto; font-size: 12px; color: var(--silver); font-family: var(--font-mono); }
+    .deala-modal-footer { display: flex; justify-content: flex-end; gap: 12px; }
+    .deala-secondary-btn { background: #111; color: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+    .deala-secondary-btn:hover { border-color: var(--silver); }
+
+    /* ============ FOOTER ============ */
+    .site-footer { background: #030303; border-top: 1px solid var(--line); padding: 80px 0 40px; position: relative; overflow: hidden; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 3fr; gap: 60px; margin-bottom: 60px; position: relative; z-index: 2; }
+    .footer-brand p { margin-top: 16px; font-size: 14px; max-width: 280px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 24px; padding: 6px 12px; border-radius: 99px; background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.2); font-size: 11px; font-family: var(--font-mono); color: #4ADE80; }
+    .status-badge .dot { width: 6px; height: 6px; background: #4ADE80; border-radius: 50%; box-shadow: 0 0 10px #4ADE80; }
+    .footer-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .footer-col h5 { color: var(--white); font-family: var(--font-display); font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
+    .footer-col a { display: block; font-size: 14px; margin-bottom: 12px; color: var(--body); transition: 0.2s; cursor: pointer; }
+    .footer-col a:hover { color: var(--silver); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 32px; border-top: 1px solid var(--line); font-family: var(--font-mono); font-size: 11px; color: var(--body); position: relative; z-index: 2; }
+    .footer-watermark { position: absolute; bottom: -150px; left: 50%; transform: translateX(-50%); width: 900px; opacity: 0.03; pointer-events: none; z-index: 0; }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 900px) {
+      .trades-grid, .deala-engine-grid, .cred-grid, .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+      .deala-pillars, .deala-fields-grid { grid-template-columns: 1fr; }
+      .hero-canvas { display: none; }
+      .network-inner { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+      .network-label { grid-column:1/-1; }
+      .footer-links { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+    }
+
+    /* SALES AGENT / INDUSTRIAL PROVENANCE */
+    .hero-actions{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}.hero-cta{background:linear-gradient(135deg,#f0f0ee,#aeb0b3);color:#101010;border-radius:999px;padding:13px 22px;font-weight:600;font-size:14px}.hero-cta span{margin-left:12px}.hero-secondary{font-size:14px;color:#ddd;padding:12px}.hero p{color:#aaa}.agent-section{padding:105px 0;border-top:1px solid var(--line);scroll-margin-top:80px}.agent-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:32px}.agent-lead{max-width:630px;margin-top:18px;color:#aaa}.agent-toggle{display:flex;gap:4px;padding:4px;background:#151515;border:1px solid #353535;border-radius:999px;flex-shrink:0}.agent-toggle button{padding:9px 16px;border-radius:999px;font-size:13px}.agent-toggle button[aria-pressed=true]{background:#eee;color:#111;font-weight:600}.agent-console{border:1px solid #555;border-radius:20px;background:radial-gradient(ellipse at 10% 0%,#2d2d2d,#111 42%,#090909 90%);box-shadow:0 30px 90px #000,inset 0 1px #ffffff22;overflow:hidden}.console-top,.console-foot{padding:17px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.console-top{border-bottom:1px solid #333}.console-top>div{display:flex;gap:9px;align-items:center;color:#eee}.phase{font:10px/1.5 var(--font-mono);letter-spacing:.09em;color:#aaaaaa}.console-grid{display:grid;grid-template-columns:175px minmax(0,1.2fr) minmax(0,.9fr)}.console-side,.console-main,.console-detail{padding:20px;min-width:0}.console-side,.console-main{border-right:1px solid #303030}.console-side>div{font-size:12px;margin-top:10px;padding:9px 8px;color:#aaa}.console-side .side-active{color:#eee;border:1px solid #ffffff14;background:#ffffff0a;border-radius:8px}.console-side small{font-size:10px;color:#888}.console-summary{display:flex;justify-content:space-between;gap:10px;align-items:center}.console-summary h3{font-size:22px;font-weight:400;margin-top:5px}.sample-pill{font:10px var(--font-mono);color:#aaaaaa;border:1px solid #8c8c8c55;border-radius:20px;padding:6px 8px;text-align:center}.agent-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:20px 0}.agent-stats>div{padding:12px 9px;background:#090909;border:1px solid #303030;border-radius:9px}.agent-stats strong{display:block;font:400 clamp(15px,1.8vw,25px) var(--font-display);color:#eee;overflow-wrap:anywhere}.agent-stats small{display:block;font-size:10px;color:#aaa}.agent-tasks{display:grid;gap:8px}.agent-task{text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 10px;border:1px solid #333;border-radius:10px;background:#101010;width:100%}.agent-task[aria-pressed=true]{border-color:#8c8c8c;background:#8c8c8c10}.agent-task strong{font-size:13px;color:#eee;display:block}.agent-task small{font-size:11px;color:#aaa}.agent-task .task-state{color:#aaaaaa;font:10px var(--font-mono);text-align:right;flex-shrink:0}.console-detail h3{font-size:21px;margin:9px 0}.console-detail p{font-size:13px;color:#aaa;margin-bottom:18px}.console-detail textarea{display:block;width:100%;padding:12px;margin:8px 0 12px;border:1px solid #414141;border-radius:9px;color:#eee;background:#080808;resize:vertical;font-size:13px}.console-detail #agent-feedback{font-size:11px;margin:9px 0 0}.console-foot{border-top:1px solid #303030;color:#a9a9a9;font:10px var(--font-mono)}.roadmap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:30px}.road-card{position:relative;overflow:hidden;background:radial-gradient(ellipse at top left,#262626,#101010 60%);border:1px solid #393939;border-radius:20px;padding:28px;min-height:180px}.road-card h3{font-size:25px;margin:14px 0 8px;font-weight:400}.road-card p{font-size:14px;color:#aaa}.measure-strip{display:flex;flex-wrap:wrap;gap:18px;margin-top:24px;border-top:1px solid #333;padding-top:18px;font:11px var(--font-mono);color:#aaa}.measure-strip span:first-child{color:#aaaaaa}.ecosystem{padding:60px 0;border-top:1px solid var(--line);text-align:center}.ecosystem .kicker{justify-content:center}.ecosystem .sec-title{font-size:32px}.ecosystem-logos{display:flex;flex-wrap:wrap;justify-content:center;gap:26px;margin:30px 0 15px}.ecosystem-logos span{color:#eee;opacity:.4;transition:opacity .25s;font:500 19px var(--font-display)}.ecosystem-logos span:hover{opacity:1}.ecosystem p:last-child{font-size:12px;color:#aaa}.panel-door{position:absolute;top:0;bottom:0;width:50%;z-index:5;pointer-events:none;background:linear-gradient(135deg,#333,#151515 45%,#0b0b0b);border:1px solid #ffffff22}.panel-door.left{left:0}.panel-door.right{right:0}.deala-modal-card{max-height:90vh;overflow:auto}.deala-modal-footer{flex-wrap:wrap}.hero .kicker{font-size:11px}.nav-logo:focus-visible,a:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid #c4c4c4;outline-offset:4px}
+    @media(max-width:1000px){.console-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.console-side{display:none}}@media(max-width:700px){.agent-section{padding:70px 0}.agent-heading{align-items:flex-start;flex-direction:column}.console-grid,.roadmap-grid{grid-template-columns:minmax(0,1fr)}.console-main{border-right:0;border-bottom:1px solid #333}.console-top,.console-foot,.console-main,.console-detail{padding:15px}.road-card,.trade-card,.deala-access-card{padding:24px}.hero{min-height:630px;height:100svh}.hero-logo{margin-bottom:25px}.hero h1{font-size:clamp(42px,11vw,65px)}.hero p{font-size:15px}.hero-actions{gap:6px}.agent-stats strong{font-size:21px}.ecosystem-logos{gap:15px}.ecosystem-logos span{font-size:16px}.wrap{padding-inline:18px}.console-summary h3{font-size:19px}.deala-toggle-group{max-width:100%}.deala-toggle-btn{padding:8px 10px}.network-metric{padding-left:12px}.nav-inner{padding:15px 18px}.deala-verify-banner{flex-wrap:wrap;gap:6px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}.panel-door{display:none!important}}
+  
+/* MONOCHROME / REFINEMENT — existing design language, not a new framework */
+:root{--silver:#c0c0c0;--silver-glow:rgba(255,255,255,.1);--body:#aaa;--line:rgba(255,255,255,.10);--line-hover:rgba(255,255,255,.23)}
+body{background:#050505;color:#a8a8a8} h1,h2,h3{font-weight:400;letter-spacing:-.055em} .nav{background:rgba(5,5,5,.82);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}.nav-links{display:flex;gap:28px;font-size:13px;color:#aaa}.nav-links a:hover,.footer-nav a:hover{color:#fff}.btn-ghost{color:#eee}.hero{height:auto;min-height: min(900px,100svh);padding:150px 0 84px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,#242424 0%,#0e0e0e 42%,#050505 72%)}.hero-content{width:100%}.hero-logo{width:150px;margin-bottom:34px;perspective:none}.hero-logo svg{width:100%;height:auto;animation:none!important}.hero h1{font-weight:300;letter-spacing:-.065em;font-size:clamp(46px,6.5vw,92px);line-height:1.06;max-width:1100px;margin-bottom:28px}.hero h1 span,.sec-title span{color:#9b9b9b}.hero p#heroSub{font-size:17px;max-width:650px;line-height:1.7;color:#b1b1b1}.hero-kicker{font:11px var(--font-mono)!important;letter-spacing:.15em;justify-content:center}.hero-proof{font:10px/1.8 var(--font-mono);letter-spacing:.07em;color:#aaa;margin-top:30px}.hero-proof b{color:#555;margin-inline:5px}.hero-bottom{width:100%;margin-top:60px}.hero-canvas{opacity:0;pointer-events:none}.hero-cta,.btn-white,.deala-primary-btn,.deala-submit-btn{background:#e9e9e9;color:#0b0b0b;border:1px solid #eee;font-weight:600}.hero-cta:hover,.btn-white:hover,.deala-primary-btn:hover,.deala-submit-btn:hover{background:#fff;color:#080808}.chapter{padding:100px 0;border-top:1px solid var(--line);scroll-margin-top:76px}.chapter-head{display:grid;grid-template-columns:1.25fr .75fr;gap:48px;align-items:end;margin-bottom:36px}.chapter-head>p{font-size:16px;line-height:1.7;max-width:425px}.sec-title{font-size:clamp(35px,4.8vw,62px);font-weight:300;line-height:1.08;letter-spacing:-.06em}.kicker{color:#aaa;font:11px/1.6 var(--font-mono);letter-spacing:.13em}.kicker:before{background:#aaa}.systems-strip{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--line);padding-top:17px;margin-top:34px;color:#a0a0a0;font:10px/1.5 var(--font-mono);letter-spacing:.045em}.systems-strip i{display:inline-block;width:6px;height:6px;border:1px solid #aaa;margin-right:5px;border-radius:50%}.story-panel,.instrument,.system-plate{border:1px solid rgba(255,255,255,.15);border-radius:24px;background:radial-gradient(ellipse at 48% 0%,#303030 0%,#171717 35%,#090909 80%);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 24px 64px -38px #000;overflow:hidden}.story-top,.story-bottom,.instrument-top,.instrument-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 24px;flex-wrap:wrap;font:11px/1.5 var(--font-mono);color:#aaa}.story-top,.instrument-top{border-bottom:1px solid var(--line)}.story-bottom,.instrument-foot{border-top:1px solid var(--line)}.story-bottom strong{color:#eee;font-weight:400}.story-grid{display:grid;grid-template-columns:repeat(3,1fr);padding:24px;gap:14px}.story-node{background:linear-gradient(140deg,#171717,#0b0b0b);border:1px solid var(--line);border-radius:18px;padding:24px;position:relative}.story-node small,.tech-label{font:11px/1.5 var(--font-mono);letter-spacing:.055em;color:#aaa}.story-node h3{font-size:clamp(29px,4vw,46px);margin:15px 0 8px;line-height:1}.story-node p{font-size:13px}.chapter-note{margin:18px 0 0;font:12px/1.7 var(--font-mono);color:#aaa}.instrument-title{display:flex;align-items:center;gap:10px;color:#eee;font:500 15px var(--font-display)}.instrument-title svg{width:25px;height:25px}.recall-toolbar{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;gap:12px;flex-wrap:wrap}.segmented{display:flex;gap:4px;padding:4px;border-radius:999px;background:#0a0a0a;border:1px solid #333}.segmented button{padding:8px 13px;border-radius:999px;font-size:12px;color:#bbb}.segmented button[aria-pressed=true]{background:#ddd;color:#111}.timeline-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 24px 24px;gap:8px}.timeline-steps button{display:grid;justify-items:center;gap:9px;padding:13px 4px;border:1px solid var(--line);border-radius:15px;background:#111;color:#aaa;min-width:0}.timeline-steps button[aria-pressed=true]{border-color:#b5b5b5;background:radial-gradient(ellipse at 50% 0%,#393939,#141414 80%);color:#fff}.timeline-steps small{font:10px var(--font-mono)}.timeline-steps strong{font-size:12px;font-weight:500}.step-orb{display:grid;place-items:center;border:1px solid #444;border-radius:50%;width:34px;height:34px;background:radial-gradient(circle at 40% 25%,#4a4a4a,#101010 75%);font:11px var(--font-mono);color:#fff}.recall-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 24px 24px}.recall-detail,.object-view,.mandate-card{background:#0a0a0a;border:1px solid var(--line);border-radius:18px;padding:24px;min-width:0}.recall-detail h3,.mandate-card h3{font-size:30px;line-height:1.15;margin:12px 0}.recall-detail p:not(.tech-label),.mandate-card p{font-size:14px;line-height:1.65}.object-view{color:#d1d1d1;font:12px/1.8 var(--font-mono);white-space:pre-wrap;overflow-wrap:anywhere;min-height:245px}.disposition{display:inline-block;border:1px solid #555;background:#181818;border-radius:999px;padding:5px 12px;color:#ddd;font:11px var(--font-mono);margin-top:19px}.recall-controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}.btn-neutral,.btn-white{padding:11px 16px;border-radius:10px;font-size:13px;border:1px solid #444}.btn-neutral{background:#151515;color:#eee}.btn-neutral:hover{border-color:#aaa}.btn-neutral:disabled,.btn-white:disabled,.deala-submit-btn:disabled{opacity:.42;cursor:not-allowed}.mandate-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:24px}.mandate-card{display:flex;flex-direction:column}.rule-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}.rule-row strong{font:11px var(--font-mono);color:#eee}.mandate-card button{margin-top:22px;text-align:center}.lab-disclosure{margin-top:24px;border:1px solid var(--line);border-radius:16px;background:#0a0a0a;overflow:hidden;scroll-margin-top:85px}.lab-disclosure summary{cursor:pointer;color:#ddd;padding:17px 20px;list-style:none;display:flex;justify-content:space-between;font-size:14px}.lab-disclosure summary::-webkit-details-marker{display:none}.lab-disclosure[open] summary span{transform:rotate(45deg)}.lab-inner{padding:20px;border-top:1px solid var(--line)}.lab-inner .sec-title{font-size:28px}.lab-inner .agent-heading{margin-bottom:16px}.lab-inner .agent-console{border-radius:16px}.phase,.sample-pill,.agent-task .task-state,.deala-access-eyebrow,.deala-json-box,.deala-step-num,.deala-link-btn{color:#c5c5c5}.agent-task[aria-pressed=true]{background:#222;border-color:#888}.sample-pill{border-color:#555}.deala-status-dot{background:#b0b0b0}.trade-card{padding:28px;background:radial-gradient(ellipse at 45% 5%,#303030,#151515 38%,#090909 82%)}.trade-card h3{font-size:36px;font-weight:300;margin:12px 0}.trade-card p{color:#b0b0b0}.model-line{display:flex;justify-content:space-between;align-items:center;color:#aaa;font:11px var(--font-mono)}.model-line svg{width:28px;height:28px}.product-graphic{color:#bababa;height:175px;display:grid;place-items:center;overflow:hidden}.product-graphic svg{height:100%;width:100%;max-width:360px;filter:drop-shadow(0 0 12px #ffffff20)}.tag{color:#bfbfbf;background:#111}.deala-access-card{background:radial-gradient(ellipse at 50% 0%,#242424,#101010 55%);border:1px solid #333}.deala-access-title{font-size:40px;font-weight:300}.deala-input{border-color:#333}.deala-input:focus,.deala-textarea:focus{outline:1px solid #ccc;border-color:#ccc}.deala-verify-banner{background:#181818;border-color:#555;color:#eee}.receipt-note{font-size:12px;color:#aaa;margin-bottom:15px}.deala-json-box{border-color:#333;overflow-wrap:anywhere;white-space:pre-wrap}.deala-modal-backdrop{background:rgba(0,0,0,.88)}.system-plate{padding:28px;display:grid;grid-template-columns:1fr 1.1fr;gap:32px;position:relative;z-index:1}.system-plate h2{font-size:36px;font-weight:300;margin:12px 0}.system-plate dl>div{display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid #333;padding:12px 0;font:11px/1.5 var(--font-mono)}.system-plate dt{color:#aaa}.system-plate dd{color:#eee;text-align:right}.footer-bottom{margin-top:30px}.footer-nav{display:flex;gap:20px;flex-wrap:wrap}a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #eee!important;outline-offset:4px}.nav-logo svg{height:24px}.site-footer{padding:55px 0 35px}.deala-form-feedback.is-error{color:#f87171}.deala-form-feedback.is-success{color:#4ade80}
+@media(max-width:800px){.nav-links{display:none}.hero{padding:115px 0 45px;min-height:auto}.hero h1{font-size:clamp(43px,10vw,68px)}.hero-logo{width:120px;margin-bottom:30px}.hero-bottom{margin-top:36px}.chapter{padding:62px 0}.chapter-head{grid-template-columns:1fr;gap:18px;margin-bottom:26px}.chapter-head>p{font-size:14px}.story-grid,.recall-grid,.mandate-grid,.system-plate{grid-template-columns:1fr}.story-grid{padding:16px;gap:10px}.story-node{padding:18px}.story-node h3{font-size:36px;margin:8px 0}.timeline-steps{padding:0 12px 16px;gap:4px}.timeline-steps button{padding:9px 2px;border-radius:10px}.timeline-steps strong{font-size:9px;overflow-wrap:anywhere}.timeline-steps small{font-size:9px}.step-orb{width:26px;height:26px;font-size:10px}.recall-grid,.mandate-grid{padding:12px;gap:10px}.recall-detail,.object-view,.mandate-card{padding:18px}.recall-toolbar,.instrument-top,.instrument-foot,.story-top,.story-bottom{padding:14px}.systems-strip{flex-wrap:wrap;gap:6px 16px;font-size:9px}.systems-strip span:last-child{display:none}.lab-inner{padding:12px}.trades-grid{gap:16px;margin-top:0}.trade-card{padding:24px}.system-plate{padding:22px;gap:12px}.footer-nav{justify-content:center;gap:14px}.hero-proof{font-size:9px;letter-spacing:0}.deala-access-section{padding:70px 0}.deala-access-title{font-size:32px}.instrument,.story-panel{border-radius:18px}}
+@media(prefers-reduced-motion:reduce){.hero-canvas{display:none!important}}
+
+.early-denial .mandate-card{padding:24px}.early-denial .btn-neutral{margin-top:14px}.footer-nav{flex-wrap:wrap;max-width:690px;justify-content:center}.receipt-note[role=status]{min-height:1.2em;color:#ddd;line-height:1.5}.deala-verify-banner{margin-bottom:8px}.early-denial .denial-caption{font-size:12px;color:#aaa;margin:12px 0 0}.deala-verify-banner[data-state="valid"]{border-color:#4ade8066}.deala-verify-banner[data-state="invalid"]{border-color:#f8717166}.deala-modal-footer button:disabled{opacity:.45;cursor:not-allowed}
+
+/* Market context and pilot resources */
+.leakage-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:24px;border:1px solid #303030;border-radius:16px;background:#0c0c0c;overflow:hidden}.leakage-strip>div{padding:22px;min-width:0}.leakage-strip>div+div{border-left:1px solid #303030}.leakage-strip h3{font-size:23px;margin:9px 0;letter-spacing:-.04em}.leakage-strip p,.expansion-panel p{font-size:13px;line-height:1.65;color:#aaa}.expansion-panel{margin-top:22px;padding:24px 30px;border:1px solid #303030;border-radius:20px;background:#0c0c0c;display:flex;align-items:center;justify-content:space-between;gap:24px}.expansion-panel h3{font-size:24px;margin:8px 0}.expansion-panel>div:first-child{max-width:650px}.expansion-panel .tag-list{flex-shrink:0;max-width:280px}.pilot-criteria{border-block:1px solid #303030;margin:0 0 20px;padding:12px 0}.pilot-criteria p{font-size:14px;margin:8px 0}.pilot-criteria strong{font:11px var(--font-mono);margin-right:12px;color:#ddd}.pilot-actions{display:grid;gap:10px}.pilot-actions a{text-align:center;display:block}.pilot-actions a[hidden]{display:none!important}.pilot-actions .deala-submit-btn{margin-top:0}.pilot-actions+.deala-form-feedback{margin-top:16px}@media(max-width:800px){.leakage-strip{grid-template-columns:1fr}.leakage-strip>div+div{border-left:0;border-top:1px solid #303030}.expansion-panel{align-items:flex-start;flex-direction:column;padding:22px}.expansion-panel .tag-list{max-width:none}}
+
+/* Runtime edition navigation */
+.nav-links{gap:20px}.hero h1{max-width:1100px}.hero-actions{flex-wrap:wrap}
+@media(max-width:1050px){.nav-links{gap:12px}}
+@media(max-width:800px){.nav-links{display:none}}
+</style>
+</head>
+<body>
+
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="metalD" gradientUnits="userSpaceOnUse" x1="24" y1="20" x2="186" y2="180">
+        <stop offset="0" stop-color="#F6F6F6"/><stop offset=".25" stop-color="#D4D4D4"/>
+        <stop offset=".45" stop-color="#A0A0A0"/><stop offset=".6" stop-color="#e6e6e6"/>
+        <stop offset=".75" stop-color="#BEBEBE"/><stop offset="1" stop-color="#E3E3E3"/>
+      </linearGradient>
+      <linearGradient id="metalW" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="100">
+        <stop offset="0" stop-color="#F7F7F7"/><stop offset=".35" stop-color="#C8C8C8"/>
+        <stop offset=".55" stop-color="#929292"/><stop offset=".72" stop-color="#E9E9E9"/>
+        <stop offset="1" stop-color="#B4B4B4"/>
+      </linearGradient>
+      <symbol id="deala-mono" viewBox="0 0 210 200">
+        <g fill="url(#metalD)" stroke="#FFFFFF" stroke-opacity=".16" stroke-width="1">
+          <path d="M24 20 L52 20 L52 116 L24 144 Z"/><path d="M24 158 L52 130 L52 180 L24 180 Z"/>
+          <path d="M64 20 L106 20 C154 20 186 54 186 100 C186 146 154 180 106 180 L64 180 L64 156 L106 156 C140 156 162 134 162 100 C162 66 140 44 106 44 L64 44 Z"/>
+          <path d="M66 156 L66 120 L84 111 L84 156 Z"/><path d="M92 156 L92 94 L110 85 L110 156 Z"/><path d="M118 156 L118 68 L136 59 L136 156 Z"/>
+        </g>
+      </symbol>
+      <symbol id="deala-lockup" viewBox="0 0 668 160">
+        <use href="#deala-mono" x="0" y="0" width="168" height="160"/>
+        <g fill="url(#metalW)" stroke="#FFFFFF" stroke-opacity=".14" stroke-width=".8">
+          <path transform="translate(190,30)" fill-rule="evenodd" d="M0 0 H32 C64 0 82 20 82 50 C82 80 64 100 32 100 H0 Z M16 16 H32 C54 16 66 28 66 50 C66 72 54 84 32 84 H16 Z"/>
+          <path transform="translate(296,30)" d="M0 0 H56 V16 H16 V42 H52 V58 H16 V84 H56 V100 H0 Z"/>
+          <path transform="translate(378,30)" d="M0 100 L34 0 L50 0 L84 100 L66 100 L42 27 L18 100 Z"/>
+          <path transform="translate(488,30)" d="M0 0 H16 V84 H56 V100 H0 Z"/>
+          <path transform="translate(570,30)" d="M0 100 L34 0 L50 0 L84 100 L66 100 L42 27 L18 100 Z"/>
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="./" class="nav-logo" aria-label="Deala home"><svg viewBox="0 0 668 160"><use href="#deala-lockup"/></svg></a>
+      <div class="nav-links"><a href="#forgotten">Runtime</a><a href="#trust">Mandates</a><a href="research/">Research</a><a href="#trades">Reference markets</a></div><a href="#access" class="btn-ghost">Request access ↗</a>
+    </div>
+  </header>
+
+  <main>
+<section class="hero" id="hero"><canvas class="hero-canvas" id="heroCanvas"></canvas><div class="hero-content" id="heroContent"><div class="hero-logo" id="heroLogo"><svg viewBox="0 0 668 160" role="img" aria-label="Deala"><use href="#deala-lockup"/></svg></div><p class="kicker hero-kicker">LONG-HORIZON AGENT INFRASTRUCTURE</p><h1 id="heroTitle">The runtime for<br><span>long-horizon commercial agents.</span></h1><p id="heroSub">Deala is building a model-independent control layer for commercial agents. Remember why a transaction stalled. Re-evaluate when relevant evidence changes. Prepare the next move under deterministic authorization and human review.</p><div class="hero-actions"><a class="hero-cta" href="#agent">Inspect the runtime <span>↘</span></a><a class="hero-secondary" href="assets/operator-dossier.pdf">Operator dossier ↗</a><a class="hero-secondary" href="research/">Research spec ↗</a></div><div class="hero-proof">DEPENDENCY-AWARE RECALL <b>·</b> FAIL-CLOSED MANDATE <b>·</b> SIGNED EVIDENCE</div></div><div class="wrap hero-bottom"><div class="systems-strip"><span><i></i> DEALA / 01 / REFERENCE ARCHITECTURE</span><span>TD-01 / AD-01</span><span>SPEC / v0.3</span></div></div></section>
+<section id="forgotten" class="chapter"><div class="wrap"><div class="chapter-head"><div><p class="kicker">02 / COMMERCIAL RECALL</p><h2 class="sec-title">Your best deals didn’t die.<br><span>They got forgotten.</span></h2></div><p>A buyer passed on a full-set watch because the price exceeded their limit. Weeks later, a matching listing arrived below that limit. Nobody revisited the conversation.</p></div><div class="story-panel"><div class="story-top"><span>ILLUSTRATIVE TRADE / TD-01</span><span>68 DAYS</span></div><div class="story-grid"><div class="story-node"><small>DAY 01</small><h3>$13,450</h3><p>Price above recorded limit.</p></div><div class="story-node"><small>UNRESOLVED</small><h3>68 days</h3><p>Buying intent remains open in this example.</p></div><div class="story-node"><small>DAY 68</small><h3>$12,300</h3><p>New listing below $12,500 limit.</p></div></div><div class="story-bottom"><span>Recorded constraint: $12,500 · full set</span><strong>Re-evaluate. Do not auto-execute.</strong></div></div><p class="chapter-note">The opportunity is not a new lead. It is an old decision with new evidence. Commercial Recall specifies explicit decision dependencies, rather than retrieving context solely by semantic similarity.</p><div class="leakage-strip" aria-label="Runtime primitives"><div><span class="tech-label">01 / STATE</span><h3>Commercial Recall</h3><p>Persist intent, constraints, evidence dependencies and decisions. Re-evaluate only when a supporting condition changes.</p></div><div><span class="tech-label">02 / AUTHORITY</span><h3>Operating Mandate</h3><p>Scope reads and proposed actions outside model reasoning. Missing authority, stale approvals and unresolved material conflicts block the next move.</p></div><div><span class="tech-label">03 / ACCOUNTABILITY</span><h3>Signed evidence</h3><p>Bind records to verifiable keys and reconcile each event to an explicit disposition. A valid signature is not proof of factual correctness.</p></div></div><div class="leakage-strip" aria-label="Market leakage"><div><span class="tech-label">MARKET / TICKET SIZE</span><h3>High-value inventory</h3><p>Five- and six-figure transactions can make a single recovered opportunity material. The $13,450 example is illustrative, not a market average.</p></div><div><span class="tech-label">MARKET / CHANNELS</span><h3>Across channels.</h3><p>Buying requirements can sit across authorized message histories, SMS and dealer systems, disconnected from later inventory events.</p></div><div><span class="tech-label">MARKET / RECALL GAP</span><h3>Manual follow-up.</h3><p>Where workflows depend on manual logging and human recall, changed conditions may never reach the original decision.</p></div></div><div class="systems-strip"><span><i></i> DEALA / 02 / COMMERCIAL RECALL</span><span>COMMERCIAL MEMORY</span><span>CASE / 068</span></div></div></section>
+<section id="agent" class="chapter"><div class="wrap"><div class="chapter-head"><div><p class="kicker">03 / SILENT SHIFT</p><h2 class="sec-title">It works the shift.<br><span>You work the trade.</span></h2></div><p>Silent Shift v0.3 is Deala’s evaluation specification for unattended commercial agents: measure selective re-evaluation, evidence grounding, correct abstention and accountable completion. The synthetic 68-day case illustrates the contract. <a href="research/" style="color:#eee;text-decoration:underline">Read the methodology ↗</a></p></div><div class="instrument" id="recall-instrument"><div class="instrument-top"><div class="instrument-title"><svg viewBox="0 0 210 200" aria-hidden="true"><use href="#deala-mono"/></svg>Commercial Recall</div><span class="tech-label">INTERACTIVE SPEC</span></div><div class="recall-toolbar"><div class="segmented" role="group" aria-label="Commercial recall case"><button type="button" data-recall-case="match" aria-pressed="true">Constraint resolves</button><button type="button" data-recall-case="block" aria-pressed="false">Constraint remains</button></div><span class="tech-label">CASE / 068</span></div><div class="timeline-steps" role="group" aria-label="Scenario steps"><button type="button" data-recall-step="0" aria-pressed="true"><small>DAY 01</small><span class="step-orb">01</span><strong>Intent</strong></button><button type="button" data-recall-step="1" aria-pressed="false"><small>DAY 01</small><span class="step-orb">02</span><strong>Pass</strong></button><button type="button" data-recall-step="2" aria-pressed="false"><small>DAY 68</small><span class="step-orb">03</span><strong>New evidence</strong></button><button type="button" data-recall-step="3" aria-pressed="false"><small>DAY 68</small><span class="step-orb">04</span><strong>Re-evaluate</strong></button><button type="button" data-recall-step="4" aria-pressed="false"><small>DAY 68</small><span class="step-orb">05</span><strong>Disposition</strong></button></div><div class="recall-grid"><div class="recall-detail" aria-live="polite"><p class="tech-label" id="recall-label">OBSERVATION / 01</p><h3 id="recall-title">A buying constraint is recorded.</h3><p id="recall-copy">“Looking for a 126610LV. Full set. Max $12,500.”</p><div class="disposition" id="recall-disposition">OBSERVED</div><div class="recall-controls"><button type="button" class="btn-neutral" id="recall-prev" disabled>← Previous</button><button type="button" class="btn-white" id="recall-next">Next step →</button></div></div><pre class="object-view" id="recall-object">{
+  "reference": "126610LV",
+  "max_price_usd": 12500,
+  "completeness": "full_set"
+}</pre></div><div class="instrument-foot"><span>SPEC / SILENT SHIFT v0.3</span><span>INTERACTIVE SPEC · CLIENT-SIDE SIMULATION</span></div></div><p class="chapter-note">Timeouts, crashes and budget exhaustion never count as correct silence. The acceptance specification requires a disposition for every accepted event.</p><div class="instrument early-denial" style="margin-top:20px"><div class="mandate-card"><span class="tech-label">AD-01 / CONTROL SAMPLE</span><h3>Not every move is authorized.</h3><p>A marketing reactivation message falls outside the recorded transactional-only consent. This local policy example denies it before execution.</p><div class="rule-row"><span>Consent mismatch</span><strong>DENIED</strong></div><button type="button" class="btn-neutral" data-mandate="deny">Inspect signed denial ↗</button><p class="denial-caption">Same operator concept. Different disposition. The local authorization layer said no.</p></div><div class="instrument-foot"><span>CONTROL / LOCAL DEMO</span><span>No external action</span></div></div><details class="lab-disclosure" id="desk-demo"><summary>Explore the sample operator desk <span>+</span></summary><div class="lab-inner">
+      <div class="agent-heading" data-investor-reveal><div data-reveal-item><p class="kicker">Sample desk / local preview</p><h2 class="sec-title" id="agent-title">Review the next move.</h2><p class="agent-lead">An illustrative desk with editable drafts. No connected accounts or messages are sent.</p></div><div class="agent-toggle" role="group" aria-label="Demo trade" data-reveal-item><button type="button" data-agent-trade="watch" aria-pressed="true">Watches</button><button type="button" data-agent-trade="auto" aria-pressed="false">Automotive</button></div></div>
+      <div class="agent-console" data-investor-reveal>
+        <div class="console-top"><div><svg viewBox="0 0 210 200" width="23" height="23" aria-hidden="true"><use href="#deala-mono"/></svg><strong>Deala / Sales desk</strong></div><span class="phase">INTERACTIVE SPEC · SAMPLE DATA</span></div>
+        <div class="console-grid"><aside class="console-side"><span class="phase">WORKSPACE</span><div class="side-active">◉ &nbsp; Today's priorities</div><div>◎ &nbsp; Buyer pipeline</div><div>▤ &nbsp; Inventory</div><div>↗ &nbsp; Follow-ups</div><div>◇ &nbsp; Activity & approvals</div><small>Illustrative navigation</small></aside>
+        <div class="console-main"><div class="console-summary"><div><span class="phase">DAILY BRIEF / SAMPLE</span><h3 id="brief-title">Three moves worth making.</h3></div><span class="sample-pill">Review required</span></div><div class="agent-stats"><div><strong id="stat1">3</strong><small>Priority moves</small></div><div><strong id="stat2">$28,450</strong><small>Example inventory value</small></div><div><strong id="stat3">2</strong><small>Follow-ups due</small></div></div><div id="agent-tasks" class="agent-tasks" aria-label="Sample priority queue"></div></div>
+        <div class="console-detail"><span class="phase">NEXT BEST ACTION / DEMO</span><h3 id="task-title"></h3><p id="task-reason"></p><label for="agent-draft" class="phase">PROPOSED MESSAGE</label><textarea id="agent-draft" rows="5"></textarea><button id="agent-approve" class="deala-primary-btn" type="button">Approve draft locally ↗</button><p id="agent-feedback" role="status" aria-live="polite">No message is sent in this demo.</p></div></div>
+        <div class="console-foot"><span>OBSERVE → PRIORITIZE → PREPARE → REVIEW</span><span>Illustrative workflow · no connected accounts</span></div>
+      </div>
+      
+    </div></details><div class="systems-strip"><span><i></i> DEALA / 03 / SILENT SHIFT</span><span>ACCEPTANCE SPEC / SS-01–04</span><span>SPEC / v0.3</span></div></div></section>
+<section id="trust" class="chapter"><div class="wrap"><div class="chapter-head"><div><p class="kicker">04 / MODEL-INDEPENDENT CONTROL</p><h2 class="sec-title">Nothing moves without<br><span>your signature.</span></h2></div><p>Models propose. Deterministic policy decides. Receipts bind decision records to a key. The architecture separates probabilistic reasoning from authorization, with model adapters and tool-call boundaries specified independently. Inspect a local policy example and verify its signed payload.</p></div><div class="instrument" id="evidence"><div class="instrument-top"><div class="instrument-title"><svg viewBox="0 0 210 200" aria-hidden="true"><use href="#deala-mono"/></svg>Evidence Lab</div><span class="tech-label">DEMO POLICY / LOCAL KEY</span></div><div class="mandate-grid"><div class="mandate-card"><span class="tech-label">TD-01 / ALLOWED FOR REVIEW</span><h3>Prepare a draft.</h3><p>Acquisition proposal: $11,800. Recorded maximum: $12,000. External execution remains disabled.</p><div class="rule-row"><span>Price constraint</span><strong>PASS</strong></div><div class="rule-row"><span>Dealer approval</span><strong>REQUIRED</strong></div><button class="btn-white" type="button" data-mandate="allow">Approve local draft & inspect receipt ↗</button></div><div class="mandate-card"><span class="tech-label">AD-01 / DENIAL</span><h3>Block the action.</h3><p>Reactivation SMS requested. Recorded consent: transactional only. Marketing communication is outside scope.</p><div class="rule-row"><span>Consent classification</span><strong>FAIL</strong></div><div class="rule-row"><span>External execution</span><strong>DENIED</strong></div><button class="btn-neutral" type="button" data-mandate="deny">Inspect signed denial ↗</button></div></div><div class="instrument-foot"><span>ED25519 / SHA-256</span><span>Local mathematical verification · Not production authorization</span></div></div><p class="chapter-note">A valid signature binds the signed payload to a key. It does not certify commercial judgment, identity or production authorization.</p><details id="engine-room" class="lab-disclosure"><summary>Explore the local listing parser <span>+</span></summary><div class="lab-inner">
+        <div class="deala-engine-header">
+          <div>
+            <p class="kicker">Local parser / evidence extraction</p>
+            <h2 id="engine-room-title" class="sec-title">From raw inquiry<br>to a structured deal.</h2>
+          </div>
+
+          <div class="deala-toggle-group" role="group" aria-label="Select asset vertical">
+            <button type="button" class="deala-toggle-btn is-active" data-vertical="watch" aria-pressed="true">Watch (WTS)</button>
+            <button type="button" class="deala-toggle-btn" data-vertical="auto" aria-pressed="false">Auto (VIN / Lane)</button>
+          </div>
+        </div>
+
+        <div class="deala-engine-grid">
+          <!-- Left: Raw Listing Input & Live Parser Output -->
+          <div class="deala-panel">
+            <div class="deala-panel-top">
+              <label for="deala-raw-input" class="deala-label">RAW INGESTION PAYLOAD</label>
+              <button type="button" id="deala-reset-sample" class="deala-link-btn">Load Sample</button>
+            </div>
+            <textarea id="deala-raw-input" class="deala-textarea" rows="3" spellcheck="false"></textarea>
+            <div class="deala-parser-meta">
+              <span class="deala-status-dot" aria-hidden="true"></span>
+              <span id="deala-parser-status">Local parser demo</span>
+            </div>
+            <div id="deala-parsed-fields" class="deala-fields-grid" aria-live="polite"></div>
+            <div>
+              
+              <button type="button" id="deala-open-receipt-btn" class="deala-primary-btn">Generate local demo receipt</button>
+            </div>
+          </div>
+
+          <!-- Right: 4 Core Engine Pillars -->
+          <div class="deala-pillars">
+            <article class="deala-pillar">
+              <span class="deala-step-num">01</span>
+              <h3>Find the signal</h3>
+              <p>The browser parser extracts selected fields from pasted dealer listings. Missing information stays missing.</p>
+            </article>
+            <article class="deala-pillar">
+              <span class="deala-step-num">02</span>
+              <h3>The Deala Stamp</h3>
+              <p>A local Ed25519 signature can bind the extracted record to its exact contents. It does not establish counterparty identity or approval.</p>
+            </article>
+            <article class="deala-pillar">
+              <span class="deala-step-num">03</span>
+              <h3>Know the spread</h3>
+              <p>Planned pricing intelligence brings authorized market context and dealer-set margin targets into the same workflow.</p>
+            </article>
+            <article class="deala-pillar">
+              <span class="deala-step-num">04</span>
+              <h3>Move the metal</h3>
+              <p>The goal: move from a qualified opportunity to an operator-reviewed next action, with a clear record of the terms.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </details><div class="systems-strip"><span><i></i> DEALA / 04 / MANDATE & RECEIPTS</span><span>DEFAULT DENY / MANDATE SPEC</span><span>SPEC / v0.3</span></div></div></section>
+<section id="trades" class="chapter"><div class="wrap"><div class="chapter-head"><div><p class="kicker">05 / REFERENCE MARKETS</p><h2 class="sec-title">One control architecture.<br><span>Two reference markets.</span></h2></div><p>Luxury horology and automotive are initial reference use cases for long-horizon agents: fragmented evidence, changing inventory and consequential decisions. Separate adapters, data rights and acceptance gates stress-test the same architecture. Reference use cases are not production deployments.</p></div><div class="trades-grid"><article class="trade-card"><div class="model-line"><span>MODEL / TD-01</span><svg viewBox="0 0 210 200" aria-hidden="true"><use href="#deala-mono"/></svg></div><div class="product-graphic watch-graphic" aria-hidden="true"><svg viewBox="0 0 360 160"><g fill="none" stroke="currentColor"><rect x="150" y="-18" width="60" height="196" rx="10" stroke-opacity=".28"/><circle cx="180" cy="80" r="67" stroke-width="2"/><circle cx="180" cy="80" r="56" stroke-opacity=".45"/><circle cx="180" cy="80" r="4"/><path d="M180 80L180 42M180 80L209 94M180 17v10M180 133v10M117 80h10M233 80h10" stroke-width="2" stroke-linecap="round"/><path d="M247 72h8v16h-8"/></g></svg></div><h3>Time-Deala</h3><p>Wholesale trading operator. Recall buying intent, acquisition limits and unresolved trade constraints when authorized listings change.</p><div class="tag-list"><span class="tag">Reference context</span><span class="tag">Margin floors</span><span class="tag">Full-set criteria</span></div></article><article class="trade-card"><div class="model-line"><span>MODEL / AD-01</span><svg viewBox="0 0 210 200" aria-hidden="true"><use href="#deala-mono"/></svg></div><div class="product-graphic" aria-hidden="true"><svg viewBox="0 0 360 160"><g fill="none" stroke="currentColor" stroke-linejoin="round" stroke-linecap="round"><!-- G-Class-inspired side profile, matching the Time-Deala line illustration. --><path d="M25 106V60L36 51L43 27H200L211 34L235 65L311 68L329 77L334 99L328 108H25Z" stroke-width="2"/><path d="M49 34H94V61H43L49 34ZM101 34H148V61H101ZM155 34H196L218 61H155Z" stroke-opacity=".52"/><path d="M100 64V100M154 64V100M221 65V100M37 77H313M106 70h11M160 70h11M219 69l-6 6h-10v-9h10M314 77v13h12M27 72h7v17h-7M25 100H328" stroke-opacity=".45"/><path d="M53 106V94Q53 77 81 77Q109 77 109 94V106M246 106V94Q246 77 274 77Q302 77 302 94V106" stroke-opacity=".62"/><path d="M111 111H244M29 58H22V99H25M43 27H201" stroke-opacity=".48"/><circle cx="81" cy="106" r="23" fill="#0b0b0b" stroke-width="2"/><circle cx="81" cy="106" r="12" stroke-opacity=".55"/><circle cx="274" cy="106" r="23" fill="#0b0b0b" stroke-width="2"/><circle cx="274" cy="106" r="12" stroke-opacity=".55"/></g></svg></div><h3>Auto-Deala</h3><p>Automotive revenue recovery operator. Revisit unresolved buyer requirements when authorized inventory changes, with consent and rooftop scope preserved.</p><div class="tag-list"><span class="tag">Inventory freshness</span><span class="tag">Rooftop scope</span><span class="tag">Suppression rules</span></div></article></div><article class="expansion-panel"><div><span class="tech-label">FUTURE MARKETS / RESEARCH ROADMAP</span><h3>Beyond the initial markets.</h3><p>Private aviation, fine art and industrial equipment are potential applications of the same commercial-memory architecture. No products, integrations or market entry announced.</p></div><div class="tag-list"><span class="tag">Private aviation</span><span class="tag">Fine art</span><span class="tag">Industrial equipment</span></div></article><div class="systems-strip"><span><i></i> DEALA / 05 / DEALA SYSTEMS</span><span>TD-01 / AD-01 · INITIAL MARKETS</span><span>SPEC / v0.3</span></div></div></section>
+<section id="access" class="deala-access-section">
+      <div class="wrap">
+        <div class="deala-access-card">
+          <p class="deala-access-eyebrow">06 / DESIGN PARTNER PROGRAM</p>
+          <h2 class="deala-access-title">Bring the deal back.</h2>
+          <p class="deala-access-subcopy">The read-only pilot design connects runtime research to independently reviewed commercial outcomes. Each vertical must satisfy data-rights, quality and authorization gates before deployment.</p>
+          <div class="pilot-criteria"><p><strong>01</strong> Authorized historical records</p><p><strong>02</strong> Defined commercial constraints</p><p><strong>03</strong> Independent outcome review</p></div>
+          <div class="pilot-actions"><a id="pilot-booking" class="deala-submit-btn" data-booking-url="" hidden>Book a pilot review ↗</a><a class="btn-white pilot-brief" href="assets/pilot-review-brief.txt" download>Download pilot review brief ↗</a><a class="btn-neutral" href="assets/operator-dossier.pdf">Operator dossier ↗</a></div>
+          <p class="deala-form-feedback" id="pilot-contact-note">Pilot scheduling details will be published when available.</p>
+        </div>
+      </div>
+    </section></main>
+  
+  <!-- FOOTER -->
+  <footer class="site-footer" id="systems"><svg class="footer-watermark" viewBox="0 0 210 200" aria-hidden="true"><use href="#deala-mono"/></svg><div class="wrap"><div class="system-plate"><div><p class="tech-label">DEALA / SYSTEMS</p><h2>Designed for the trade.</h2><p>Long-horizon state. Deterministic authorization. Verifiable evidence.</p></div><dl><div><dt>REFERENCE MARKETS</dt><dd>TD-01 / AD-01</dd></div><div><dt>EVALUATION SPEC</dt><dd>Silent Shift v0.3</dd></div><div><dt>PUBLIC VERIFICATION</dt><dd>Ed25519 / SHA-256</dd></div><div><dt>PILOT POSTURE</dt><dd>Read-only design · readiness gates</dd></div></dl></div><div class="system-plate" style="margin-top:20px"><div><p class="tech-label">DEALA / TECHNICAL RESOURCES</p><h2>Control by design.</h2><p>A model-independent architecture with explicit evidence, authorization and evaluation contracts.</p></div><dl><div><dt>ARCHITECTURE</dt><dd>Read-only pilot design</dd></div><div><dt>PROVENANCE</dt><dd>Signed records · local verification</dd></div><div><dt>AUTHORITY</dt><dd>Human review · no external execution in demos</dd></div><div><dt>DOCUMENTATION</dt><dd><a href="assets/operator-dossier.pdf">Operator dossier ↗ PDF</a></dd></div></dl></div><div class="footer-bottom"><a class="nav-logo" href="./" aria-label="Deala home"><svg viewBox="0 0 668 160"><use href="#deala-lockup"/></svg></a><div class="footer-nav"><a href="#agent">Recall</a><a href="#trust">Mandates</a><a href="research/">Research / Spec</a><a href="#trades">Reference markets</a><a href="#access">Pilot inquiries</a><a href="verify/">Verify signature</a><a href="security/">Security</a><a href="status/">Status</a><a href="changelog/">Changelog</a><a href="press/">Press kit</a><a href="assets/operator-dossier.pdf">Operator dossier ↗</a></div><span>© 2026 Deala</span></div></div></footer>
+
+  <!-- RECEIPT MODAL -->
+  <div id="deala-receipt-modal" class="deala-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deala-modal-title" hidden>
+    <div class="deala-modal-card">
+      <div class="deala-modal-header">
+        <div>
+          <p class="deala-access-eyebrow" style="text-align: left;">Cryptographic Provenance</p>
+          <h3 id="deala-modal-title" class="deala-modal-title">Signed local demo receipt</h3>
+        </div>
+        <button type="button" id="deala-close-modal" class="deala-close-btn" aria-label="Close modal">✕</button>
+      </div>
+      <div class="deala-verify-banner" id="deala-verify-banner">
+        <span>SIGNATURE</span>
+        <strong id="deala-sig-status">NOT VERIFIED</strong>
+      </div>
+      <p id="deala-verify-result" class="receipt-note" role="status" aria-live="polite">Awaiting verification.</p>
+      <p class="receipt-note" id="deala-receipt-note">This receipt signs the decision record only. Verification checks whether that record matches the signature. It does not prove the decision was correct, and the local demo key is not a production identity.</p>
+      <pre class="deala-json-box"><code id="deala-receipt-json"></code></pre>
+      <div class="deala-modal-footer">
+        <button type="button" id="deala-copy-json-btn" class="deala-secondary-btn">Copy JSON</button>
+        <button type="button" id="deala-download-json-btn" class="deala-secondary-btn">Download .json</button>
+        <button type="button" id="deala-verify-btn" class="deala-primary-btn" style="width: auto;">Verify signature locally</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+
+  <script>
+    /* ============ INITIALIZATION ============ */
+    if (window.gsap && window.ScrollTrigger) {
+      gsap.registerPlugin(ScrollTrigger);
+
+      if (window.Lenis && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+        gsap.ticker.lagSmoothing(0);
+      }
+
+      ScrollTrigger.create({
+        start: 'top -50',
+        onUpdate: (self) => { document.getElementById('nav').classList.toggle('scrolled', self.scroll() > 50); }
+      });
+
+      /* ============ 3D MONOGRAM ============ */
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && window.innerWidth > 900) {
+        try {
+          const canvas = document.getElementById('heroCanvas');
+          const scene = new THREE.Scene();
+          const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+          camera.position.z = 9.5;
+
+          const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+          const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+          scene.add(ambientLight);
+          const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.5);
+          dirLight1.position.set(5, 5, 5);
+          scene.add(dirLight1);
+          const dirLight2 = new THREE.DirectionalLight(0xB0B0B0, 1.5); 
+          dirLight2.position.set(-5, -5, 2);
+          scene.add(dirLight2);
+
+          const extrudeSettings = { depth: 0.4, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.05, bevelThickness: 0.05 };
+          
+          function createDealaD() {
+            const group = new THREE.Group();
+            const drawShape = (svgPathFunc) => {
+              const shape = new THREE.Shape();
+              svgPathFunc(shape);
+              const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+              geo.center();
+              geo.scale(0.018, 0.018, 0.018); 
+              return geo;
+            };
+            const mat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 1, roughness: 0.2 });
+
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(24, 20); s.lineTo(52, 20); s.lineTo(52, 116); s.lineTo(24, 144); s.lineTo(24, 20); }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(24, 158); s.lineTo(52, 130); s.lineTo(52, 180); s.lineTo(24, 180); s.lineTo(24, 158); }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { 
+              s.moveTo(64, 20); s.lineTo(106, 20);
+              s.bezierCurveTo(154, 20, 186, 54, 186, 100); s.bezierCurveTo(186, 146, 154, 180, 106, 180);
+              s.lineTo(64, 180); s.lineTo(64, 156); s.lineTo(106, 156);
+              s.bezierCurveTo(140, 156, 162, 134, 162, 100); s.bezierCurveTo(162, 66, 140, 44, 106, 44);
+              s.lineTo(64, 44); s.lineTo(64, 20);
+            }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(66, 156); s.lineTo(66, 120); s.lineTo(84, 111); s.lineTo(84, 156); s.lineTo(66, 156); }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(92, 156); s.lineTo(92, 94); s.lineTo(110, 85); s.lineTo(110, 156); s.lineTo(92, 156); }), mat));
+            group.add(new THREE.Mesh(drawShape(s => { s.moveTo(118, 156); s.lineTo(118, 68); s.lineTo(136, 59); s.lineTo(136, 156); s.lineTo(118, 156); }), mat));
+
+            group.rotation.x = Math.PI; 
+            return group;
+          }
+
+          const mesh = createDealaD();
+          scene.add(mesh);
+
+          gsap.to(mesh.rotation, {
+            y: Math.PI * 2,
+            scrollTrigger: {
+              trigger: "#hero", start: "top top", end: "bottom top", scrub: 1, pin: false,
+              onUpdate: (self) => {
+                
+                const opacity = Math.min(self.progress * .30, .22); 
+                canvas.style.opacity = opacity;
+                
+              }
+            }
+          });
+
+          function animate() { requestAnimationFrame(animate); if(document.hidden || canvas.getBoundingClientRect().bottom < 0) return; mesh.position.y = Math.sin(Date.now() * 0.001) * 0.1; renderer.render(scene, camera); }
+          animate();
+          window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+        } catch (error) { console.warn('3D hero unavailable; using static logo.', error); }
+      }
+
+      /* ============ SCROLLTRIGGER REVEALS ============ */
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const words = document.querySelectorAll('.m-word');
+        if(words.length) gsap.fromTo(words, {opacity:.2}, { opacity: 1, stagger: 0.1, scrollTrigger: { trigger: ".manifesto", start: "top 70%", end: "bottom 40%", scrub: true } });
+
+        document.querySelectorAll('.trade-card').forEach(card=>{
+          const left=document.createElement('span'),right=document.createElement('span');left.className='panel-door left';right.className='panel-door right';left.setAttribute('aria-hidden','true');right.setAttribute('aria-hidden','true');card.append(left,right);
+          gsap.timeline({scrollTrigger:{trigger:card,start:'top 88%',end:'top 52%',scrub:true}}).to(left,{xPercent:-101,ease:'none'},0).to(right,{xPercent:101,ease:'none'},0);
+        });
+        const investorMotion = gsap.matchMedia();
+        investorMotion.add('(min-width: 901px)', () => {
+          gsap.utils.toArray('[data-investor-reveal]').forEach(group => {
+            const targets = group.querySelectorAll('[data-reveal-item]');
+            gsap.fromTo(targets, {y:22, autoAlpha:0}, {y:0, autoAlpha:1, duration:.65, stagger:.095, ease:'power2.out', clearProps:'transform,visibility,opacity', scrollTrigger:{trigger:group,start:'top 88%',once:true}});
+          });
+        });
+        investorMotion.add('(max-width: 900px)', () => {
+          gsap.utils.toArray('[data-reveal-item]').forEach(item => {
+            gsap.fromTo(item, {y:14, autoAlpha:0}, {y:0, autoAlpha:1, duration:.5, ease:'power2.out', clearProps:'transform,visibility,opacity', scrollTrigger:{trigger:item,start:'top 94%',once:true}});
+          });
+        });
+      }
+    }
+
+    /* ============ INTERACTIVE ENGINE ROOM (WEB CRYPTO) ============ */
+    (function () {
+      const SAMPLES = {
+        watch: "WTS 126610LV Starbucks Mk2 BNIB 2026 full set papers + card $13,450 wire / escrow NYC hand-to-hand",
+        auto: "LANE 14 | 2024 Mercedes-AMG G63 VIN: W1NYC7HJ8RX492810 | 4,120 mi | Obsidian Black | Ask $178,500 | Clean Carfax, 1-pay"
+      };
+
+      const toggleButtons = Array.from(document.querySelectorAll(".deala-toggle-btn"));
+      const rawInput = document.getElementById("deala-raw-input");
+      const resetBtn = document.getElementById("deala-reset-sample");
+      const fieldsContainer = document.getElementById("deala-parsed-fields");
+      const statusText = document.getElementById("deala-parser-status");
+
+      const openReceiptBtn = document.getElementById("deala-open-receipt-btn");
+      const modal = document.getElementById("deala-receipt-modal");
+      const closeModalBtn = document.getElementById("deala-close-modal");
+      const jsonCodeEl = document.getElementById("deala-receipt-json");
+      const sigStatusEl = document.getElementById("deala-sig-status");
+      const copyJsonBtn = document.getElementById("deala-copy-json-btn");
+      const downloadJsonBtn = document.getElementById("deala-download-json-btn");
+      const verifyBtn = document.getElementById("deala-verify-btn");
+
+      let currentVertical = "watch";
+      let currentParsed = null;
+      let currentReceipt = null;
+      let receiptRun = 0;
+      let cachedKeyPair = null;
+      let lastTriggerEl = null; // Tracks the element that opened the modal for focus return
+
+      function parseListing(text, vertical) {
+        const t0 = performance.now();
+        const clean = (text || "").trim();
+        const priceMatch = clean.match(/\$\s?([\d,]+(?:\.\d{1,2})?)/);
+        const askUsd = priceMatch ? Number(priceMatch[1].replace(/,/g, "")) : null;
+
+        if (vertical === "auto") {
+          const vinMatch = clean.match(/\b[A-HJ-NPR-Z0-9]{17}\b/i);
+          const yearMatch = clean.match(/\b(19|20)\d{2}\b/);
+          const milesMatch = clean.match(/([\d,]+)\s*(?:mi|miles)\b/i);
+          const laneMatch = clean.match(/\bLANE\s*(\d+)\b/i);
+          const vin = vinMatch ? vinMatch[0].toUpperCase() : null;
+          const year = yearMatch ? yearMatch[0] : null;
+          const mileage = milesMatch ? Number(milesMatch[1].replace(/,/g, "")) : null;
+          const lane = laneMatch ? `Lane ${laneMatch[1]}` : "Wholesale Feed";
+          const estComp = null;
+          const elapsed = (performance.now() - t0).toFixed(1);
+          
+          return {
+            elapsed, vertical: "AUTOMOTIVE_WHOLESALE",
+            fields: [
+              { key: "VIN / Chassis", value: vin || "Not provided" },
+              { key: "Model Year & Lane", value: `${year || "Unknown year"} · ${lane}` },
+              { key: "Quoted Ask", value: askUsd ? `$${askUsd.toLocaleString()}` : "Unquoted" },
+              { key: "Odometer", value: mileage === null ? "Not provided" : `${mileage.toLocaleString()} mi` }
+            ],
+            payload: { asset_class: "automotive", vin, model_year: year ? Number(year) : null, odometer_miles: mileage, lane, quoted_ask_usd: askUsd, estimated_comp_usd: estComp, raw_excerpt: clean.slice(0, 240) }
+          };
+        }
+
+        const refMatch = clean.match(/\b\d{5,6}[A-Z]{0,4}\b/);
+        const conditionMatch = clean.match(/\b(BNIB|NEW|UNWORN|MINT|NOS|LNIB)\b/i);
+        const ref = refMatch ? refMatch[0].toUpperCase() : null;
+        const condition = conditionMatch ? conditionMatch[0].toUpperCase() : null;
+        const marketMedian = null;
+        const elapsed = (performance.now() - t0).toFixed(1);
+
+        return {
+          elapsed, vertical: "HOROLOGY_WTS",
+          fields: [
+            { key: "Reference", value: ref || "Not provided" },
+            { key: "Condition Grade", value: condition || "Not provided" },
+            { key: "Quoted Ask", value: askUsd ? `$${askUsd.toLocaleString()}` : "Unquoted" },
+            { key: "Market comp", value: "Not connected" }
+          ],
+          payload: { asset_class: "horology", reference: ref, condition, quoted_ask_usd: askUsd, market_median_usd: marketMedian, raw_excerpt: clean.slice(0, 240) }
+        };
+      }
+
+      function renderParsed() {
+        currentParsed = parseListing(rawInput.value, currentVertical);
+        statusText.textContent = `Parsed in ${currentParsed.elapsed} ms · ${currentParsed.vertical}`;
+        fieldsContainer.innerHTML = currentParsed.fields.map(f => `
+          <div class="deala-field-card">
+            <span class="deala-field-key">${escapeHtml(f.key)}</span>
+            <span class="deala-field-val">${escapeHtml(f.value)}</span>
+          </div>
+        `).join("");
+      }
+
+      function escapeHtml(str) {
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      function bytesToHex(buffer) { return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, "0")).join(""); }
+      function bytesToBase64(buffer) { const bytes = new Uint8Array(buffer); let bin = ""; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]); return btoa(bin); }
+
+      async function getOrCreateEd25519KeyPair(forceRotate = false) {
+        if (cachedKeyPair && !forceRotate) return cachedKeyPair;
+        if (window.crypto && window.crypto.subtle) {
+          try {
+            cachedKeyPair = await window.crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"]);
+            return cachedKeyPair;
+          } catch (_) {}
+        }
+        return null;
+      }
+
+      async function buildSignedReceipt(parsed, forceRotate = false) {
+        const subject = {type: parsed.subjectType || "listing", payload: parsed.payload};
+        const canonicalPayload = JSON.stringify(subject);
+        const dataBytes = new TextEncoder().encode(canonicalPayload);
+        let sha256Hex = "0".repeat(64);
+        if (window.crypto && window.crypto.subtle) {
+          const hashBuf = await window.crypto.subtle.digest("SHA-256", dataBytes);
+          sha256Hex = bytesToHex(hashBuf);
+        }
+        const keyPair = await getOrCreateEd25519KeyPair(forceRotate);
+        let signatureB64 = "";
+        let publicKeyB64 = "";
+        let verified = false;
+        let algorithm = "Ed25519+SHA256";
+
+        if (keyPair && window.crypto && window.crypto.subtle) {
+          const sigBuf = await window.crypto.subtle.sign("Ed25519", keyPair.privateKey, dataBytes);
+          const pubRaw = await window.crypto.subtle.exportKey("raw", keyPair.publicKey);
+          verified = await window.crypto.subtle.verify("Ed25519", keyPair.publicKey, sigBuf, dataBytes);
+          signatureB64 = bytesToBase64(sigBuf);
+          publicKeyB64 = bytesToBase64(pubRaw);
+        } else {
+          throw new Error("Ed25519 is unavailable in this browser context. Use a supported browser on HTTPS or localhost.");
+        }
+
+        return {
+          receipt_version: "2.0.0-demo",
+          receipt_id: `rcpt_${sha256Hex.slice(0, 12)}`,
+          issued_at: new Date().toISOString(),
+          algorithm,
+          payload_sha256: sha256Hex,
+          subject,
+          provenance: { signer_role: "LOCAL_EPHEMERAL_DEMO_KEY", public_key_ed25519_b64: publicKeyB64, signature_b64: signatureB64, local_verification_passed: verified }
+        };
+      }
+
+      function showReceiptVerification(signatureValid, digestMatches, message) {
+        const result = document.getElementById("deala-verify-result");
+        const banner = document.getElementById("deala-verify-banner");
+        sigStatusEl.textContent = signatureValid === null ? "NOT VERIFIED" : signatureValid ? "VALID" : "INVALID";
+        banner.dataset.state = signatureValid === null ? "pending" : signatureValid && digestMatches ? "valid" : "invalid";
+        result.textContent = message || (digestMatches ? "SHA-256 digest matches. " : "SHA-256 digest mismatch. ") + (signatureValid ? "Signature verified against included demo key. " : "Ed25519 signature invalid. ") + "Signer identity not established.";
+      }
+
+      async function openAndSignModal(forceRotate = false, decision = null) {
+        const run = ++receiptRun;
+        if (!currentParsed) renderParsed();
+        showReceiptVerification(null, false, "Signing and checking the local demo record…");
+        document.getElementById("deala-receipt-note").textContent = decision
+          ? "This receipt signs the decision record only. Verification checks whether that record matches the signature. It does not prove the decision was correct, and the local demo key is not a production identity."
+          : "This receipt signs the listing record only. Verification checks whether that record matches the signature. It does not prove the listing was accurate, and the local demo key is not a production identity.";
+        modal.hidden = false;
+        currentReceipt = null; jsonCodeEl.textContent = ""; verifyBtn.disabled = true; closeModalBtn.focus();
+        try {
+          const receipt = await buildSignedReceipt(decision ? {payload: decision, subjectType: "decision"} : currentParsed, forceRotate);
+          if (run !== receiptRun) return;
+          currentReceipt = receipt; jsonCodeEl.textContent = JSON.stringify(currentReceipt, null, 2);
+          showReceiptVerification(receipt.provenance.local_verification_passed, true);
+          verifyBtn.disabled = false;
+        } catch (error) {
+          if (run !== receiptRun) return;
+          showReceiptVerification(null, false, "Verification could not complete. " + error.message);
+        }
+      }
+
+      function closeReceiptModal() {
+        ++receiptRun; modal.hidden = true;
+        if (lastTriggerEl && typeof lastTriggerEl.focus === "function") {
+          lastTriggerEl.focus();
+          lastTriggerEl = null;
+        }
+      }
+
+      function setVertical(vertical) {
+        currentVertical = vertical;
+        toggleButtons.forEach((btn) => {
+          const active = btn.dataset.vertical === vertical;
+          btn.classList.toggle("is-active", active);
+          btn.setAttribute("aria-pressed", String(active));
+        });
+        rawInput.value = SAMPLES[vertical];
+        renderParsed();
+      }
+
+      // Wire up the main generate button
+      toggleButtons.forEach((btn) => btn.addEventListener("click", () => setVertical(btn.dataset.vertical)));
+      resetBtn.addEventListener("click", () => { rawInput.value = SAMPLES[currentVertical]; renderParsed(); });
+      rawInput.addEventListener("input", renderParsed);
+      
+      openReceiptBtn.addEventListener("click", () => {
+        lastTriggerEl = openReceiptBtn;
+        openAndSignModal(false);
+      });
+      
+      document.querySelectorAll('[data-mandate]').forEach(btn => btn.addEventListener('click', () => {
+        lastTriggerEl = btn;
+        const allow = btn.dataset.mandate === 'allow';
+        const price=11800, max=12000, consent='transactional_only', requested='marketing';
+        const pass=allow ? price<=max : consent===requested;
+        const decision = {demo:true, operator:allow?'TD-01':'AD-01', mandate_version:'synthetic-v0.1', action:allow?'prepare_internal_draft':'send_reactivation_sms', policy_input:allow?{price_usd:price,max_price_usd:max}:{consent,requested}, policy_result:pass?'ALLOWED_FOR_REVIEW':'DENIED', reason:pass?'PRICE_WITHIN_LIMIT':'CONSENT_CLASS_MISMATCH', local_review:pass?'approved_in_browser_demo':'not_authorized', external_execution:false};
+        openAndSignModal(false,decision);
+      }));
+      verifyBtn.addEventListener('click', async () => {
+        if (!currentReceipt) return;
+        const run = ++receiptRun;
+        verifyBtn.disabled = true;
+        showReceiptVerification(null, false, "Checking digest and signature…");
+        try {
+          const receipt = JSON.parse(jsonCodeEl.textContent);
+          const data = new TextEncoder().encode(JSON.stringify(receipt.subject));
+          const digest = bytesToHex(await crypto.subtle.digest('SHA-256', data));
+          const fromB64 = x => Uint8Array.from(atob(x), c=>c.charCodeAt(0));
+          const key = await crypto.subtle.importKey('raw',fromB64(receipt.provenance.public_key_ed25519_b64),'Ed25519',false,['verify']);
+          const signatureValid = await crypto.subtle.verify('Ed25519',key,fromB64(receipt.provenance.signature_b64),data);
+          if (run !== receiptRun) return;
+          showReceiptVerification(signatureValid, digest === receipt.payload_sha256);
+        } catch(e) {
+          if (run === receiptRun) showReceiptVerification(null, false, "Verification could not complete.");
+        } finally {
+          if (run === receiptRun) verifyBtn.disabled = false;
+        }
+      });
+
+      // Close handlers
+      closeModalBtn.addEventListener("click", closeReceiptModal);
+      modal.addEventListener("click", (e) => { if (e.target === modal) closeReceiptModal(); });
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeReceiptModal(); });
+
+      // Wire up footer triggers
+      const modalTriggers = Array.from(document.querySelectorAll("[data-open-receipt-modal]"));
+      modalTriggers.forEach((trigger) => {
+        trigger.addEventListener("click", (event) => {
+          event.preventDefault();
+          lastTriggerEl = trigger;
+          if (!currentParsed) {
+            renderParsed();
+          }
+          openAndSignModal(false);
+        });
+      });
+
+      copyJsonBtn.addEventListener("click", async () => {
+        if (!currentReceipt) return;
+        try {
+          await navigator.clipboard.writeText(JSON.stringify(currentReceipt, null, 2));
+          copyJsonBtn.textContent = "Copied!";
+          setTimeout(() => (copyJsonBtn.textContent = "Copy JSON"), 1400);
+        } catch (_) { copyJsonBtn.textContent = "Select manually"; }
+      });
+
+      downloadJsonBtn.addEventListener("click", () => {
+        if (!currentReceipt) return;
+        const blob = new Blob([JSON.stringify(currentReceipt, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = `${currentReceipt.receipt_id}.json`; a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      setVertical("watch");
+    })();
+
+    /* Optional verified booking URL. No contact details are collected by this site. */
+    (() => {
+      const link = document.getElementById('pilot-booking');
+      if (!link || !link.dataset.bookingUrl) return;
+      try {
+        const url = new URL(link.dataset.bookingUrl);
+        if (url.protocol !== 'https:' || url.username || url.password) return;
+        link.href = url.href;
+        link.hidden = false;
+        document.getElementById('pilot-contact-note').textContent = 'Scheduling opens the external booking service.';
+      } catch (_) { /* No verified destination configured; keep local resources available. */ }
+    })();
+  </script>
+  <script>
+  (()=>{
+    const demo={watch:{value:'$28,450',tasks:[['Buyer match','Submariner 126610LV','Buyer asked for this reference and full set. Confirm availability before quoting.','Hey, I have a potential full-set 126610LV match for your request. Still looking? I can confirm condition, price and availability.'],['Follow up','GMT-Master II inquiry','The example lead has not replied in two days. Ask whether their search is still active.','Checking in on the GMT we discussed. Are you still looking, or has your target changed? Happy to send current options.'],['Move inventory','Datejust / aged stock','Review dealer-set floor before offering this example item.','I have a Datejust available for review. Let me know your target and I can share details if we are aligned.']]},auto:{value:'$112,900',tasks:[['Buyer match','2024 Mercedes GLE','The sample buyer asked for a black SUV. Confirm stock and preferred appointment time.','Hi, I may have a GLE that fits what you were looking for. Are you still shopping? I can confirm availability and arrange a viewing.'],['Follow up','Trade-in inquiry','The example buyer has an open appraisal conversation. Request mileage and a convenient time.','Following up on your trade-in. Can you confirm current mileage and a good time for an appraisal?'],['Move inventory','SUV / 63 days aged','Review the vehicle cost and price floor before drafting a wholesale offer.','We have an SUV available for wholesale review. Are you buying this week? I can share the VIN, condition and asking price after confirmation.']]}};
+    let trade='watch', selected=0;const approved={watch:new Map(),auto:new Map()},drafts={watch:new Map(),auto:new Map()};const $=id=>document.getElementById(id);
+    function draw(){const t=demo[trade],a=approved[trade];$('stat1').textContent=String(3-a.size);$('stat2').textContent=t.value;$('stat3').textContent=String(2-[1,2].filter(i=>a.has(i)).length);$('agent-tasks').replaceChildren();t.tasks.forEach((task,i)=>{const b=document.createElement('button');b.type='button';b.className='agent-task';b.setAttribute('aria-pressed',String(i===selected));const info=document.createElement('span'),title=document.createElement('strong'),desc=document.createElement('small'),state=document.createElement('span');title.textContent=task[0];desc.textContent=task[1];info.append(title,desc);state.className='task-state';state.textContent=a.has(i)?'APPROVED':'REVIEW ↗';b.append(info,state);b.onclick=()=>{selected=i;draw();$('agent-tasks').children[i].focus();};$('agent-tasks').append(b);});const task=t.tasks[selected];$('task-title').textContent=task[1];$('task-reason').textContent=task[2];$('agent-draft').value=drafts[trade].get(selected)??task[3];$('agent-approve').textContent=a.has(selected)?'Approved locally ✓':'Approve draft locally ↗';$('agent-approve').disabled=a.has(selected);$('agent-feedback').textContent=a.has(selected)?'Draft approved in this session. No message sent.':'No message is sent in this demo.';document.querySelectorAll('[data-agent-trade]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.agentTrade===trade)));}
+    document.querySelectorAll('[data-agent-trade]').forEach(b=>b.onclick=()=>{trade=b.dataset.agentTrade;selected=0;draw();});$('agent-draft').addEventListener('input',()=>{drafts[trade].set(selected,$('agent-draft').value);approved[trade].delete(selected);$('agent-approve').disabled=false;$('agent-approve').textContent='Approve draft locally ↗';$('agent-feedback').textContent='Draft changed; review again.';const row=$('agent-tasks').children[selected];row.querySelector('.task-state').textContent='REVIEW ↗';$('stat1').textContent=String(3-approved[trade].size);$('stat3').textContent=String(2-[1,2].filter(i=>approved[trade].has(i)).length);});$('agent-approve').onclick=()=>{const value=$('agent-draft').value.trim();if(!value){$('agent-feedback').textContent='Enter a draft before approving.';return;}approved[trade].set(selected,value);draw();};draw();
+  })();
+  </script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id); let step=0,mode='match';
+function render(){const price=mode==='match'?12300:12800,limit=12500,fullSet=true,qualified=price<=limit&&fullSet;
+const cases=[
+['OBSERVATION / 01','A buying constraint is recorded.','“Looking for a 126610LV. Full set. Max $12,500.”','OBSERVED',{type:'Intent',reference:'126610LV',max_price_usd:limit,completeness:'full_set',evidence:'synthetic:message-01'}],
+['DECISION / 02','The original trade is passed.','The asking price exceeds the recorded maximum. The intent remains open in this scenario.','ABSTAIN',{type:'Decision',id:'synthetic:decision-01',price_usd:13450,reason:'PRICE_ABOVE_LIMIT',invalidation_condition:{field:'asking_price_usd',operator:'<=',value:limit},depends_on:['synthetic:message-01']}],
+['OBSERVATION / 03','New evidence arrives.','An authorized listing enters the simulated event stream. No human prompt is part of the scenario.','OBSERVED',{type:'Observation',id:'synthetic:listing-68',reference:'126610LV',asking_price_usd:price,completeness:'full_set'}],
+['RE-EVALUATION / 04',qualified?'The recorded constraint resolves.':'The price is still above the limit.',qualified?'The sample price and completeness pass. Availability and counterparty checks remain pending.':'A matching reference alone does not qualify a deal.',qualified?'POTENTIAL MATCH':'CONSTRAINT REMAINS',{decision_id:'synthetic:decision-01',evidence:'synthetic:listing-68',price_check:price<=limit,completeness_check:fullSet,availability:'unknown',counterparty:'unverified'}],
+['DISPOSITION / 05',qualified?'Prepare an internal review.':'Do not surface a qualified trade.',qualified?'Show a potential match for human review. No outreach, offer or payment is authorized.':'Record the abstention reason. Do not send a message or make an offer.',qualified?'ESCALATE / REVIEW':'ABSTAIN',{disposition:qualified?'ESCALATE':'ABSTAIN',reason:qualified?'AVAILABILITY_AND_COUNTERPARTY_UNVERIFIED':'CONSTRAINT_NOT_RESOLVED',evidence:['synthetic:message-01','synthetic:listing-68'],external_execution:false}]];
+const [label,title,copy,status,obj]=cases[step];$('recall-label').textContent=label;$('recall-title').textContent=title;$('recall-copy').textContent=copy;$('recall-disposition').textContent=status;$('recall-object').textContent=JSON.stringify(obj,null,2);$('recall-prev').disabled=step===0;$('recall-next').disabled=step===4;document.querySelectorAll('[data-recall-step]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.recallStep)===step)));document.querySelectorAll('[data-recall-case]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.recallCase===mode)));}
+document.querySelectorAll('[data-recall-step]').forEach(b=>b.addEventListener('click',()=>{step=Number(b.dataset.recallStep);render()}));document.querySelectorAll('[data-recall-case]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.recallCase;render()}));$('recall-prev').onclick=()=>{step=Math.max(0,step-1);render()};$('recall-next').onclick=()=>{step=Math.min(4,step+1);render()};render();
+})();</script>
+</body>
+</html>

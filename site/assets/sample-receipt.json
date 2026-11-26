@@ -1,0 +1,28 @@
+{
+  "receipt_version": "2.0.0-demo",
+  "receipt_id": "rcpt_38c124060417",
+  "algorithm": "Ed25519+SHA256",
+  "payload_sha256": "38c1240604179a7376b9a171c4976b6d5497c29b8bf166fbbb7ab6b69abeb110",
+  "subject": {
+    "type": "decision",
+    "payload": {
+      "demo": true,
+      "operator": "AD-01",
+      "mandate_version": "synthetic-v0.1",
+      "action": "send_reactivation_sms",
+      "policy_input": {
+        "consent": "transactional_only",
+        "requested": "marketing"
+      },
+      "policy_result": "DENIED",
+      "reason": "CONSENT_CLASS_MISMATCH",
+      "local_review": "not_authorized",
+      "external_execution": false
+    }
+  },
+  "provenance": {
+    "signer_role": "LOCAL_EPHEMERAL_DEMO_KEY",
+    "public_key_ed25519_b64": "WfujcQkGPYtkWcXcwe1zVeEU+ddILvkiVTtWUZzX758=",
+    "signature_b64": "0UuIpfRfkFK3xSf5XV59CuQ4wKk/VYVLijF3IVLg3pw2/fF9M5sHSkgh8WZB9+Fey9cPC+W3XLGCTZk8acOJBA=="
+  }
+}
